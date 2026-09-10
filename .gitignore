@@ -1,0 +1,77 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Variables de entorno y secretos
+.env
+.env.local
+*.pem
+*.key
+
+# IDE / editor
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# VS Code: ignorar todo excepto settings compartidos del proyecto
+.vscode/*
+!.vscode/settings.json
+
+# Dataset (archivos pesados; se documenta cómo descargarlos)
+dataset/crudo/**
+dataset/procesado/**
+!dataset/crudo/.gitkeep
+!dataset/procesado/.gitkeep
+!dataset/metadatos/.gitkeep
+!dataset/ejemplos/.gitkeep
+
+# Modelos entrenados y puntos de control
+modelo_ia/puntos_control/**
+!modelo_ia/puntos_control/.gitkeep
+modelo_ia/explicabilidad/salidas/**
+!modelo_ia/explicabilidad/salidas/.gitkeep
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# Base de datos local
+base_de_datos/*.db
+base_de_datos/*.sqlite
+base_de_datos/*.sqlite3
+base_de_datos/respaldos/**
+!base_de_datos/respaldos/.gitkeep
+
+# Archivos subidos por usuarios
+cargas/**
+!cargas/.gitkeep
+!cargas/ecg/.gitkeep
+
+# Frontend (si se usa Node)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Logs
+*.log
+logs/

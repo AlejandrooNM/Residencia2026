@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CardioIA — Apoyo diagnóstico IAM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/estilos/principal.css" />
+  </head>
+  <body>
+    <div class="fondo-atmosfera" aria-hidden="true"></div>
+
+    <header class="barra-superior">
+      <div class="barra-interior">
+        <p class="marca">CardioIA</p>
+        <span class="insignia-beta">Beta</span>
+      </div>
+    </header>
+
+    <main class="escenario">
+      <section class="hero" aria-labelledby="titulo-hero">
+        <p class="marca-hero">CardioIA</p>
+        <h1 id="titulo-hero">Apoyo diagnóstico de infarto en ECG</h1>
+        <p class="lead">
+          Cargue un electrocardiograma de 12 derivaciones y obtenga una
+          estimación asistida por red neuronal residual.
+        </p>
+        <div class="acciones-hero">
+          <a class="boton boton-principal" href="#analizar">Analizar ECG</a>
+        </div>
+        <svg class="trazo-ecg" viewBox="0 0 800 120" preserveAspectRatio="none" aria-hidden="true">
+          <path
+            class="onda"
+            d="M0,60 H80 L100,60 L120,20 L140,100 L160,45 L180,60 H280 L300,60 L320,10 L340,110 L360,50 L380,60 H520 L540,60 L560,25 L580,95 L600,55 L620,60 H800"
+          />
+        </svg>
+      </section>
+
+      <section id="analizar" class="panel-analisis" aria-labelledby="titulo-carga">
+        <div class="panel-cabecera">
+          <h2 id="titulo-carga">Análisis de electrocardiograma</h2>
+          <p>
+            Formatos esperados en esta beta: archivos de señal
+            (<strong>.dat</strong>, <strong>.hea</strong>, <strong>.csv</strong> o
+            <strong>.txt</strong>. El modelo clínico se conectará al final del proyecto.
+          </p>
+        </div>
+
+        <form id="formulario-analisis" class="formulario" novalidate>
+          <label
+            id="zona-carga"
+            class="zona-carga"
+            for="archivo-ecg"
+          >
+            <input
+              id="archivo-ecg"
+              name="archivo"
+              type="file"
+              accept=".dat,.hea,.csv,.txt,.npy,.mat,application/octet-stream"
+              required
+            />
+            <span class="zona-titulo">Arrastre su ECG aquí</span>
+            <span class="zona-detalle">o haga clic para seleccionarlo</span>
+            <span id="nombre-archivo" class="nombre-archivo">Ningún archivo seleccionado</span>
+          </label>
+
+          <div class="fila-acciones">
+            <button id="boton-analizar" type="submit" class="boton boton-principal" disabled>
+              Analizar
+            </button>
+            <button id="boton-demo" type="button" class="boton boton-secundario">
+              Ver ejemplo PTB-XL
+            </button>
+            <button id="boton-limpiar" type="button" class="boton boton-secundario">
+              Limpiar
+            </button>
+          </div>
+        </form>
+
+        <div id="estado-conexion" class="estado-conexion" aria-live="polite">
+          Comprobando API…
+        </div>
+
+        <article id="tarjeta-resultado" class="tarjeta-resultado oculto" aria-live="polite">
+          <header>
+            <h3>Resultado</h3>
+            <span id="insignia-etiqueta" class="insignia-etiqueta">pendiente</span>
+          </header>
+          <dl class="rejilla-metricas">
+            <div>
+              <dt>Archivo</dt>
+              <dd id="valor-archivo">—</dd>
+            </div>
+            <div>
+              <dt>Probabilidad IAM</dt>
+              <dd id="valor-probabilidad">—</dd>
+            </div>
+            <div>
+              <dt>Confianza</dt>
+              <dd id="valor-confianza">—</dd>
+            </div>
+            <div>
+              <dt>Explicabilidad</dt>
+              <dd id="valor-explicabilidad">—</dd>
+            </div>
+          </dl>
+          <p id="valor-mensaje" class="mensaje-resultado"></p>
+          <div class="barra-confianza" aria-hidden="true">
+            <span id="relleno-confianza"></span>
+          </div>
+        </article>
+
+        <section id="panel-grafico" class="panel-grafico oculto" aria-labelledby="titulo-grafico">
+          <div class="panel-grafico-cabecera">
+            <h3 id="titulo-grafico">Señal ECG + Grad-CAM</h3>
+            <p id="detalle-grafico" class="detalle-grafico"></p>
+          </div>
+          <canvas id="lienzo-ecg" class="lienzo-ecg" width="900" height="480"></canvas>
+          <ul id="lista-regiones" class="lista-regiones"></ul>
+        </section>
+      </section>
+    </main>
+
+    <footer class="pie">
+      <p>
+        Herramienta de apoyo para primer nivel de atención. No sustituye el juicio
+        clínico de un especialista.
+      </p>
+      <p class="pie-meta">Residencia profesional · Instituto Tecnológico de Tijuana · 2026</p>
+    </footer>
+
+    <script type="module" src="./src/paginas/inicio.js"></script>
+  </body>
+</html>
