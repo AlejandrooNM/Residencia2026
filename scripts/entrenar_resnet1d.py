@@ -91,6 +91,12 @@ def parsear_argumentos() -> argparse.Namespace:
         action="store_true",
         help="Permite entrenar en CPU (solo pruebas). El entrenamiento final debe usar GPU.",
     )
+    parser.add_argument(
+        "--carpeta-salida",
+        type=Path,
+        default=None,
+        help="Carpeta para checkpoints (por defecto: modelo_ia/puntos_control/...)",
+    )
     return parser.parse_args()
 
 
@@ -106,9 +112,15 @@ def main() -> None:
 
     dispositivo = obtener_dispositivo(exigir_gpu=not args.permitir_cpu)
     carpeta_procesado = RUTA_RAIZ / "dataset" / "procesado" / f"frecuencia_{args.frecuencia}"
-    carpeta_checkpoints = (
-        RUTA_RAIZ / "modelo_ia" / "puntos_control" / f"resnet1d_{args.variante}_{args.frecuencia}hz"
-    )
+    if args.carpeta_salida is not None:
+        carpeta_checkpoints = args.carpeta_salida
+    else:
+        carpeta_checkpoints = (
+            RUTA_RAIZ
+            / "modelo_ia"
+            / "puntos_control"
+            / f"resnet1d_{args.variante}_{args.frecuencia}hz"
+        )
 
     print("=" * 60)
     print("ENTRENAMIENTO ResNet1D - Deteccion de IAM")

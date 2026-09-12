@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "descripcion": "Demos estáticas CardioIA para GitHub Pages",
+  "demos": [
+    {
+      "archivo": "demo_00.json",
+      "indice_validacion": 0,
+      "etiqueta_real": "iam_detectado",
+      "probabilidad_iam": 0.5997
+    },
+    {
+      "archivo": "demo_01.json",
+      "indice_validacion": 25,
+      "etiqueta_real": "iam_detectado",
+      "probabilidad_iam": 0.946
+    },
+    {
+      "archivo": "demo_02.json",
+      "indice_validacion": 50,
+      "etiqueta_real": "sin_iam",
+      "probabilidad_iam": 0.0514
+    },
+    {
+      "archivo": "demo_03.json",
+      "indice_validacion": 100,
+      "etiqueta_real": "iam_detectado",
+      "probabilidad_iam": 0.4455
+    },
+    {
+      "archivo": "demo_04.json",
+      "indice_validacion": 200,
+      "etiqueta_real": "sin_iam",
+      "probabilidad_iam": 0.0277
+    }
+  ]
+}

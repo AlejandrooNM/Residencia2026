@@ -28,19 +28,37 @@ def crear_aplicacion() -> FastAPI:
         debug=configuracion.depuracion,
     )
 
-    aplicacion.add_middleware(
-        CORSMiddleware,
-        allow_origins=configuracion.origenes_permitidos,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    if configuracion.modo_compartir:
+        aplicacion.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=False,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    else:
+        aplicacion.add_middleware(
+            CORSMiddleware,
+            allow_origins=configuracion.origenes_permitidos,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     aplicacion.include_router(salud.enrutador, tags=["Salud"])
     aplicacion.include_router(analisis.enrutador, prefix="/api", tags=["Análisis"])
     aplicacion.include_router(visualizacion.enrutador, prefix="/api", tags=["Visualización"])
 
     if RUTA_FRONTEND.exists():
+        from fastapi.staticfiles import StaticFiles
+
+        carpeta_publica = RUTA_FRONTEND / "public"
+        if carpeta_publica.exists():
+            aplicacion.mount(
+                "/public",
+                StaticFiles(directory=carpeta_publica),
+                name="publico",
+            )
 
         @aplicacion.get("/", include_in_schema=False)
         def servir_inicio() -> FileResponse:

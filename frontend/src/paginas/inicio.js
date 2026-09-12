@@ -4,6 +4,7 @@
 
 import {
   analizarElectrocardiograma,
+  esModoEstatico,
   obtenerVisualizacionDemo,
   verificarSaludApi,
 } from "../servicios/cliente_api.js";
@@ -121,6 +122,12 @@ function limpiarFormulario() {
 }
 
 async function comprobarApi() {
+  if (esModoEstatico()) {
+    estadoConexion.textContent =
+      "Demo pública (GitHub Pages) · ejemplos Grad-CAM precargados · PC apagada OK";
+    estadoConexion.className = "estado-conexion ok";
+    return;
+  }
   try {
     const activa = await verificarSaludApi();
     if (activa) {
@@ -131,7 +138,7 @@ async function comprobarApi() {
     throw new Error("Sin respuesta");
   } catch {
     estadoConexion.textContent =
-      "API no disponible. Ejecute el backend para analizar archivos.";
+      "API no disponible. Puedes usar «Ver ejemplo PTB-XL» si hay demos locales.";
     estadoConexion.className = "estado-conexion error";
   }
 }
@@ -173,7 +180,7 @@ botonDemo.addEventListener("click", async () => {
 
   try {
     const visualizacion = await obtenerVisualizacionDemo(indiceDemo);
-    indiceDemo = (indiceDemo + 1) % 50;
+    indiceDemo += 1;
 
     mostrarResultado({
       nombre_archivo: `demo_validacion_${visualizacion.indice}`,

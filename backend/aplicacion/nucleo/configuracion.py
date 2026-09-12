@@ -8,12 +8,14 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+RUTA_ENV = Path(__file__).resolve().parents[3] / ".env"
+
 
 class Configuracion(BaseSettings):
     """Parámetros de configuración del sistema."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(RUTA_ENV) if RUTA_ENV.exists() else ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -23,6 +25,9 @@ class Configuracion(BaseSettings):
 
     host_api: str = "127.0.0.1"
     puerto_api: int = 8000
+
+    # true = escucha en todas las interfaces y CORS abierto (solo demos)
+    modo_compartir: bool = False
 
     url_base_de_datos: str = "sqlite:///./base_de_datos/sistema_iam.db"
 
@@ -44,6 +49,13 @@ class Configuracion(BaseSettings):
     @property
     def es_desarrollo(self) -> bool:
         return self.entorno.lower() == "desarrollo"
+
+    @property
+    def host_escucha(self) -> str:
+        """En modo compartir escucha en todas las interfaces de red."""
+        if self.modo_compartir:
+            return "0.0.0.0"
+        return self.host_api
 
 
 @lru_cache

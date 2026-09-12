@@ -129,13 +129,18 @@ class EntrenadorResNet1D:
         estado = {
             "epoca": epoca,
             "estado_modelo": self.modelo.state_dict(),
-            "estado_optimizador": self.optimizador.state_dict(),
             "metricas_validacion": metricas_validacion.a_diccionario(),
             "mejor_auc": self.mejor_auc,
         }
-        torch.save(estado, self.carpeta_checkpoints / "ultimo.pt")
+        # Guardado liviano (sin optimizador) para evitar fallos de disco/temp
+        ruta_ultimo = self.carpeta_checkpoints / "ultimo.pt"
+        torch.save(estado, ruta_ultimo, _use_new_zipfile_serialization=False)
         if es_mejor:
-            torch.save(estado, self.carpeta_checkpoints / "mejor.pt")
+            torch.save(
+                estado,
+                self.carpeta_checkpoints / "mejor.pt",
+                _use_new_zipfile_serialization=False,
+            )
 
     def entrenar(self) -> dict[str, Any]:
         """Ejecuta el ciclo completo de entrenamiento con early stopping."""

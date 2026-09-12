@@ -32,7 +32,7 @@ class ConjuntoEcgIam(Dataset):
         return len(self.etiquetas)
 
     def __getitem__(self, indice: int) -> tuple[torch.Tensor, torch.Tensor]:
-        senal = torch.from_numpy(np.asarray(self.senales[indice], dtype=np.float32))
+        senal = torch.from_numpy(np.array(self.senales[indice], dtype=np.float32, copy=True))
         etiqueta = torch.tensor(int(self.etiquetas[indice]), dtype=torch.long)
         return senal, etiqueta
 

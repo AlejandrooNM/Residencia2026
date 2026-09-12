@@ -22,7 +22,16 @@ Para que el clon sea liviano, **no** se suben:
 
 Sí se incluyen: código, scripts, metadatos ligeros, esquema SQL y la web beta.
 
-## Clonar e instalar (equipo)
+## Demo pública (GitHub Pages)
+
+La interfaz está publicada de forma **permanente** (tu PC puede estar apagada):
+
+**https://alejandroonm.github.io/Residencia2026/**
+
+Incluye ejemplos Grad-CAM precargados («Ver ejemplo PTB-XL»).  
+El análisis de archivos en vivo sigue requiriendo el servidor local.
+
+> GitHub Pages solo aloja la página estática. No ejecuta Python/PyTorch en la nube.
 
 ```powershell
 git clone https://github.com/USUARIO/NOMBRE-DEL-REPO.git
