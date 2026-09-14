@@ -124,7 +124,7 @@ function limpiarFormulario() {
 async function comprobarApi() {
   if (esModoEstatico()) {
     estadoConexion.textContent =
-      "Demo pública (GitHub Pages) · ejemplos Grad-CAM precargados · PC apagada OK";
+      "Ejemplos precargados";
     estadoConexion.className = "estado-conexion ok";
     return;
   }
