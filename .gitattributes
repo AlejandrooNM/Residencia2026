@@ -1,0 +1,4 @@
+# Registros WFDB y tensores: se versionan sin conversión de fin de línea
+*.dat binary
+*.npy binary
+*.hea text eol=lf
