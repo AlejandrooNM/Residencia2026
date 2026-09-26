@@ -22,6 +22,7 @@ for ruta in (RUTA_RAIZ, RUTA_BACKEND):
     if str(ruta) not in sys.path:
         sys.path.insert(0, str(ruta))
 
+from aplicacion.nucleo.configuracion import obtener_configuracion  # noqa: E402
 from aplicacion.servicios.constructor_visualizacion import construir_visualizacion  # noqa: E402
 from aplicacion.servicios.proveedor_modelo import obtener_proveedor_modelo  # noqa: E402
 
@@ -40,7 +41,8 @@ def main() -> None:
     senales = np.load(RUTA_X, mmap_mode="r")
     etiquetas = np.load(RUTA_Y)
     proveedor = obtener_proveedor_modelo()
-    print(f"Checkpoint: {proveedor.ruta_checkpoint}")
+    umbral = obtener_configuracion().umbral_clasificacion
+    print(f"Checkpoint: {proveedor.ruta_checkpoint} · umbral {umbral}")
 
     RUTA_SALIDA.mkdir(parents=True, exist_ok=True)
     indice_demos = []
@@ -59,6 +61,7 @@ def main() -> None:
             ),
             indice=indice,
             etiqueta_real="iam_detectado" if es_iam else "sin_iam",
+            umbral_decision=umbral,
         )
         demo = visualizacion.model_dump()
         demo["probabilidad_iam"] = round(demo["probabilidad_iam"], 4)

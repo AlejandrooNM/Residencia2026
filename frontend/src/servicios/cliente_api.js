@@ -55,8 +55,8 @@ export async function analizarElectrocardiograma(archivos, frecuenciaMuestreo = 
       probabilidad_iam: 0,
       confianza: 0,
       mensaje:
-        "Demo pública en GitHub Pages: el análisis en vivo requiere el servidor. " +
-        "Usa «Ver ejemplo PTB-XL» para ver ECG + Grad-CAM precargados.",
+        "Esta versión pública no puede analizar archivos nuevos porque el modelo corre en un " +
+        "servidor aparte. Pulse «Ver un ejemplo real» para ver ECG ya analizados.",
       mapa_explicabilidad_disponible: false,
     };
   }

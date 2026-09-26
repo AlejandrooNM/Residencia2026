@@ -22,9 +22,14 @@ class VisualizacionEcg(BaseModel):
     nombres_derivaciones: list[str]
     frecuencia_muestreo: int
     muestras: int
+    duracion_segundos: float = Field(gt=0, description="Duración real de la señal mostrada")
     senales: list[list[float]] = Field(description="Lista de derivaciones; cada una es una serie temporal")
     mapa_grad_cam: list[float]
     probabilidad_iam: float = Field(ge=0.0, le=1.0)
+    umbral_decision: float | None = Field(
+        default=None,
+        description="Probabilidad a partir de la cual el sistema clasifica como IAM",
+    )
     regiones: list[RegionVisual]
     importancia_por_zona: dict[str, float] = Field(
         default_factory=dict,

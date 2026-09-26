@@ -56,6 +56,7 @@ class ServicioAnalisis:
             proveedor=self._proveedor,
             origen="carga_usuario",
             mensaje="",
+            umbral_decision=self._umbral,
         )
         probabilidad_iam = visualizacion.probabilidad_iam
         es_iam = probabilidad_iam >= self._umbral

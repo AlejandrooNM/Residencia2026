@@ -8,6 +8,7 @@ import numpy as np
 
 from aplicacion.esquemas.analisis import EtiquetaDiagnostico
 from aplicacion.esquemas.visualizacion import VisualizacionEcg
+from aplicacion.nucleo.configuracion import obtener_configuracion
 from aplicacion.nucleo.rutas import RUTA_PROYECTO
 from aplicacion.servicios.constructor_visualizacion import construir_visualizacion
 from aplicacion.servicios.proveedor_modelo import obtener_proveedor_modelo
@@ -45,4 +46,5 @@ class ServicioVisualizacion:
             max_derivaciones=max_derivaciones,
             indice=indice,
             etiqueta_real=etiqueta_real.value,
+            umbral_decision=obtener_configuracion().umbral_clasificacion,
         )

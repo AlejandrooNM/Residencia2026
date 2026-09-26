@@ -1,6 +1,11 @@
 /**
- * Dibuja ECG multi-derivación con mapa Grad-CAM de fondo.
+ * Dibuja ECG multi-derivación con mapa Grad-CAM de fondo y eje de tiempo en segundos.
  */
+
+const NOMBRES_CLINICOS = { AVR: "aVR", AVL: "aVL", AVF: "aVF" };
+const COLOR_TEXTO_SUAVE = "#9db4bd";
+const COLOR_REJILLA = "rgba(155, 190, 198, 0.12)";
+const SEPARACION_MINIMA_ETIQUETAS_PX = 44;
 
 /**
  * @param {HTMLCanvasElement} lienzo
@@ -8,6 +13,7 @@
  *   nombres_derivaciones: string[],
  *   senales: number[][],
  *   mapa_grad_cam: number[],
+ *   duracion_segundos?: number,
  * }} datos
  */
 export function dibujarEcgConGradCam(lienzo, datos) {
@@ -16,33 +22,35 @@ export function dibujarEcgConGradCam(lienzo, datos) {
 
   const dpr = window.devicePixelRatio || 1;
   const anchoCss = lienzo.clientWidth || 640;
-  const altoCss = Math.max(320, datos.senales.length * 72 + 70);
+  const altoCss = Math.max(340, datos.senales.length * 72 + 100);
   lienzo.width = Math.floor(anchoCss * dpr);
   lienzo.height = Math.floor(altoCss * dpr);
   contexto.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  const margenIzq = 48;
+  const margenIzq = 64;
   const margenDer = 16;
   const margenSup = 12;
-  const altoMapa = 56;
-  const altoUtil = altoCss - margenSup - altoMapa - 24;
+  const altoMapa = 48;
+  const altoEje = 26;
+  const altoUtil = altoCss - margenSup - altoMapa - altoEje - 16;
   const altoFila = altoUtil / datos.senales.length;
   const anchoUtil = anchoCss - margenIzq - margenDer;
-  const muestras = datos.mapa_grad_cam.length;
+  const duracion = datos.duracion_segundos ?? 10;
 
   contexto.clearRect(0, 0, anchoCss, altoCss);
   contexto.fillStyle = "rgba(7, 18, 24, 0.55)";
   contexto.fillRect(0, 0, anchoCss, altoCss);
+
+  dibujarLineasSegundo(contexto, duracion, margenIzq, margenSup, anchoUtil, altoUtil);
 
   datos.senales.forEach((serie, indice) => {
     const y0 = margenSup + indice * altoFila;
     const y1 = y0 + altoFila;
     dibujarMapaFondo(contexto, datos.mapa_grad_cam, margenIzq, y0, anchoUtil, altoFila);
     dibujarSerie(contexto, serie, margenIzq, y0 + 8, anchoUtil, altoFila - 16, "#d7eef2");
-    contexto.fillStyle = "#9db4bd";
-    contexto.font = "600 12px Manrope, sans-serif";
-    contexto.fillText(datos.nombres_derivaciones[indice] ?? `D${indice + 1}`, 10, y0 + altoFila / 2);
-    contexto.strokeStyle = "rgba(155, 190, 198, 0.12)";
+    const nombre = datos.nombres_derivaciones[indice] ?? `D${indice + 1}`;
+    escribirRotulo(contexto, NOMBRES_CLINICOS[nombre] ?? nombre, 10, y0 + altoFila / 2, 12);
+    contexto.strokeStyle = COLOR_REJILLA;
     contexto.beginPath();
     contexto.moveTo(margenIzq, y1);
     contexto.lineTo(margenIzq + anchoUtil, y1);
@@ -51,9 +59,42 @@ export function dibujarEcgConGradCam(lienzo, datos) {
 
   const yMapa = margenSup + altoUtil + 8;
   dibujarMapaLinea(contexto, datos.mapa_grad_cam, margenIzq, yMapa, anchoUtil, altoMapa);
-  contexto.fillStyle = "#9db4bd";
-  contexto.font = "600 11px Manrope, sans-serif";
-  contexto.fillText("Grad-CAM", 8, yMapa + altoMapa / 2);
+  escribirRotulo(contexto, "Influencia", 6, yMapa + altoMapa / 2, 11);
+
+  dibujarEjeTiempo(contexto, duracion, margenIzq, yMapa + altoMapa + 4, anchoUtil);
+}
+
+function escribirRotulo(contexto, texto, x, y, tamano) {
+  contexto.fillStyle = COLOR_TEXTO_SUAVE;
+  contexto.font = `600 ${tamano}px Manrope, sans-serif`;
+  contexto.textAlign = "left";
+  contexto.textBaseline = "middle";
+  contexto.fillText(texto, x, y);
+}
+
+function dibujarLineasSegundo(contexto, duracion, x, y, ancho, alto) {
+  contexto.strokeStyle = COLOR_REJILLA;
+  contexto.lineWidth = 1;
+  for (let segundo = 1; segundo < duracion; segundo += 1) {
+    const px = x + (segundo / duracion) * ancho;
+    contexto.beginPath();
+    contexto.moveTo(px, y);
+    contexto.lineTo(px, y + alto);
+    contexto.stroke();
+  }
+}
+
+function dibujarEjeTiempo(contexto, duracion, x, y, ancho) {
+  const pasoSegundos = ancho / duracion < SEPARACION_MINIMA_ETIQUETAS_PX ? 2 : 1;
+  contexto.fillStyle = COLOR_TEXTO_SUAVE;
+  contexto.font = "500 11px Manrope, sans-serif";
+  contexto.textBaseline = "top";
+  for (let segundo = 0; segundo <= duracion; segundo += pasoSegundos) {
+    const px = x + (segundo / duracion) * ancho;
+    contexto.textAlign = segundo === 0 ? "left" : segundo === duracion ? "right" : "center";
+    contexto.fillText(`${segundo} s`, px, y);
+  }
+  contexto.textAlign = "left";
 }
 
 function colorCalor(valor) {

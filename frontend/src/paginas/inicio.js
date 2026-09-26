@@ -1,5 +1,5 @@
 /**
- * Página principal beta: carga de ECG, demo PTB-XL y gráfico Grad-CAM.
+ * Página principal beta: carga de ECG, ejemplos PTB-XL y explicación del resultado.
  */
 
 import {
@@ -10,6 +10,14 @@ import {
   verificarSaludApi,
 } from "../servicios/cliente_api.js";
 import { dibujarEcgConGradCam } from "../componentes/grafico_ecg.js";
+import {
+  ETIQUETAS_RESULTADO,
+  ZONAS_LATIDO,
+  describirZonas,
+  formatearPorcentaje,
+  interpretarResultado,
+  muestraASegundos,
+} from "../componentes/interpretacion.js";
 
 const formulario = document.getElementById("formulario-analisis");
 const campoArchivo = document.getElementById("archivo-ecg");
@@ -20,36 +28,43 @@ const botonAnalizar = document.getElementById("boton-analizar");
 const botonDemo = document.getElementById("boton-demo");
 const botonLimpiar = document.getElementById("boton-limpiar");
 const estadoConexion = document.getElementById("estado-conexion");
+
 const tarjetaResultado = document.getElementById("tarjeta-resultado");
+const veredicto = document.getElementById("veredicto");
+const tituloVeredicto = document.getElementById("titulo-veredicto");
+const explicacionVeredicto = document.getElementById("explicacion-veredicto");
+const bloqueProbabilidad = document.getElementById("bloque-probabilidad");
+const valorProbabilidad = document.getElementById("valor-probabilidad");
+const tramoSinIam = document.getElementById("tramo-sin-iam");
+const tramoIam = document.getElementById("tramo-iam");
+const marcadorUmbral = document.getElementById("marcador-umbral");
+const textoUmbral = document.getElementById("texto-umbral");
+const marcadorPaciente = document.getElementById("marcador-paciente");
+const textoProbabilidad = document.getElementById("texto-probabilidad");
+const valorCerteza = document.getElementById("valor-certeza");
+const textoCerteza = document.getElementById("texto-certeza");
+const valorArchivo = document.getElementById("valor-archivo");
+const bloqueComparacion = document.getElementById("bloque-comparacion");
+const valorReal = document.getElementById("valor-real");
+const valorAcierto = document.getElementById("valor-acierto");
+const bloqueRecomendacion = document.getElementById("bloque-recomendacion");
+const textoRecomendacion = document.getElementById("texto-recomendacion");
+
 const panelGrafico = document.getElementById("panel-grafico");
 const lienzoEcg = document.getElementById("lienzo-ecg");
 const detalleGrafico = document.getElementById("detalle-grafico");
-const listaRegiones = document.getElementById("lista-regiones");
+const textoZonas = document.getElementById("texto-zonas");
 const repartoZonas = document.getElementById("reparto-zonas");
+const bloqueRegiones = document.getElementById("bloque-regiones");
+const listaRegiones = document.getElementById("lista-regiones");
+
 const panelHistorial = document.getElementById("panel-historial");
 const cuerpoHistorial = document.getElementById("cuerpo-historial");
 
-const NOMBRES_ZONA = {
-  necrosis: "Necrosis (onda Q)",
-  lesion: "Lesión (segmento ST)",
-  isquemia: "Isquemia (onda T)",
-  indeterminada: "Indeterminada",
-};
-
-const valorArchivo = document.getElementById("valor-archivo");
-const valorProbabilidad = document.getElementById("valor-probabilidad");
-const valorConfianza = document.getElementById("valor-confianza");
-const valorExplicabilidad = document.getElementById("valor-explicabilidad");
-const valorMensaje = document.getElementById("valor-mensaje");
-const insigniaEtiqueta = document.getElementById("insignia-etiqueta");
-const rellenoConfianza = document.getElementById("relleno-confianza");
+const UMBRAL_SIN_DATO = 0.5;
 
 let indiceDemo = 0;
 let ultimaVisualizacion = null;
-
-function formatearPorcentaje(valor) {
-  return `${(Number(valor) * 100).toFixed(1)}%`;
-}
 
 function obtenerArchivosSeleccionados() {
   return Array.from(campoArchivo.files ?? []);
@@ -66,61 +81,96 @@ function actualizarNombreArchivo() {
   botonAnalizar.disabled = false;
 }
 
-function mostrarResultado(resultado) {
-  tarjetaResultado.classList.remove("oculto");
-
-  valorArchivo.textContent = resultado.nombre_archivo ?? resultado.origen ?? "—";
-  valorProbabilidad.textContent = formatearPorcentaje(resultado.probabilidad_iam ?? 0);
-  valorConfianza.textContent = formatearPorcentaje(
-    resultado.confianza ?? resultado.probabilidad_iam ?? 0,
-  );
-  valorExplicabilidad.textContent = resultado.mapa_explicabilidad_disponible
-    ? "Disponible (Grad-CAM)"
-    : "Pendiente (Grad-CAM)";
-  valorMensaje.textContent = resultado.mensaje ?? "";
-
-  const etiqueta = resultado.etiqueta ?? resultado.etiqueta_real ?? "pendiente";
-  insigniaEtiqueta.textContent = String(etiqueta).replaceAll("_", " ");
-  insigniaEtiqueta.className = `insignia-etiqueta ${etiqueta}`;
-
-  const porcentaje = Math.max(
-    0,
-    Math.min(100, Number(resultado.confianza ?? resultado.probabilidad_iam ?? 0) * 100),
-  );
-  rellenoConfianza.style.width = `${porcentaje}%`;
+function mostrarEscala(probabilidad, umbral) {
+  const posicionUmbral = `${umbral * 100}%`;
+  tramoSinIam.style.width = posicionUmbral;
+  tramoIam.style.left = posicionUmbral;
+  tramoIam.style.width = `${(1 - umbral) * 100}%`;
+  marcadorUmbral.style.left = posicionUmbral;
+  textoUmbral.textContent = `Umbral ${formatearPorcentaje(umbral)}`;
+  marcadorPaciente.style.left = `${Math.min(100, Math.max(0, probabilidad * 100))}%`;
 }
 
-function mostrarGrafico(visualizacion) {
-  ultimaVisualizacion = visualizacion;
-  panelGrafico.classList.remove("oculto");
-  detalleGrafico.textContent = [
-    visualizacion.origen === "demo_validacion"
-      ? `Ejemplo validación #${visualizacion.indice}`
-      : "Señal cargada",
-    `${visualizacion.muestras} muestras @ ${visualizacion.frecuencia_muestreo} Hz`,
-    `P(IAM)=${formatearPorcentaje(visualizacion.probabilidad_iam)}`,
-  ].join(" · ");
-
-  dibujarEcgConGradCam(lienzoEcg, visualizacion);
-  mostrarRepartoZonas(visualizacion.importancia_por_zona ?? {});
-
-  listaRegiones.innerHTML = "";
-  const regiones = visualizacion.regiones ?? [];
-  if (!regiones.length) {
-    const item = document.createElement("li");
-    item.textContent = "Sin regiones por encima del umbral de importancia.";
-    listaRegiones.appendChild(item);
+function mostrarComparacion(etiquetaReal, esIamPredicho) {
+  if (!etiquetaReal) {
+    bloqueComparacion.classList.add("oculto");
     return;
   }
+  const esIamReal = etiquetaReal === "iam_detectado";
+  valorReal.textContent = esIamReal ? "Infarto" : "Sin infarto";
 
-  regiones.forEach((region) => {
-    const item = document.createElement("li");
-    item.innerHTML =
-      `<strong>${NOMBRES_ZONA[region.zona_sugerida] ?? region.zona_sugerida}</strong> ` +
-      `[${region.inicio}:${region.fin}] · ${formatearPorcentaje(region.importancia_media)} — ` +
-      `${region.descripcion}`;
-    listaRegiones.appendChild(item);
-  });
+  const acerto = esIamReal === esIamPredicho;
+  let texto = "El modelo acertó en este ejemplo.";
+  if (!acerto) {
+    texto = esIamReal
+      ? "El modelo se equivocó: este ECG sí tenía infarto y no lo detectó (falso negativo). " +
+        "Por eso un resultado negativo nunca descarta un infarto por sí solo."
+      : "El modelo se equivocó: marcó posible infarto en un ECG que no lo tenía (falso positivo).";
+  }
+  valorAcierto.textContent = texto;
+  valorAcierto.className = `valor-acierto ${acerto ? "acierto" : "error"}`;
+  bloqueComparacion.classList.remove("oculto");
+}
+
+/**
+ * @param {{
+ *   nombre: string,
+ *   probabilidad: number,
+ *   umbral: number,
+ *   etiquetaReal?: string | null,
+ * }} datos
+ */
+function mostrarResultado({ nombre, probabilidad, umbral, etiquetaReal = null }) {
+  const interpretacion = interpretarResultado(probabilidad, umbral);
+
+  veredicto.className = `veredicto ${interpretacion.esIam ? "iam_detectado" : "sin_iam"}`;
+  tituloVeredicto.textContent = interpretacion.titulo;
+  explicacionVeredicto.textContent = interpretacion.explicacion;
+
+  bloqueProbabilidad.classList.remove("oculto");
+  valorProbabilidad.textContent = formatearPorcentaje(probabilidad, 1);
+  mostrarEscala(probabilidad, umbral);
+  textoProbabilidad.textContent = interpretacion.textoProbabilidad;
+
+  valorCerteza.textContent = interpretacion.certeza.nivel;
+  valorCerteza.className = `certeza-${interpretacion.certeza.nivel.toLowerCase()}`;
+  textoCerteza.textContent = interpretacion.certeza.texto;
+  valorArchivo.textContent = nombre;
+
+  mostrarComparacion(etiquetaReal, interpretacion.esIam);
+  bloqueRecomendacion.classList.remove("oculto");
+  textoRecomendacion.textContent = interpretacion.recomendacion;
+
+  tarjetaResultado.classList.remove("oculto");
+  return interpretacion;
+}
+
+function mostrarSinAnalisis(nombre, mensaje) {
+  veredicto.className = "veredicto pendiente";
+  tituloVeredicto.textContent = "Análisis no disponible en esta versión";
+  explicacionVeredicto.textContent = mensaje;
+  valorArchivo.textContent = nombre;
+  valorCerteza.textContent = "—";
+  textoCerteza.textContent = "";
+  bloqueProbabilidad.classList.add("oculto");
+  bloqueComparacion.classList.add("oculto");
+  bloqueRecomendacion.classList.add("oculto");
+  tarjetaResultado.classList.remove("oculto");
+}
+
+function mostrarGrafico(visualizacion, esIam) {
+  ultimaVisualizacion = visualizacion;
+  panelGrafico.classList.remove("oculto");
+  detalleGrafico.textContent =
+    visualizacion.origen === "carga_usuario"
+      ? `Se muestran ${visualizacion.nombres_derivaciones.length} de las 12 derivaciones.`
+      : `Ejemplo n.º ${visualizacion.indice} del conjunto de validación PTB-XL · ` +
+        `se muestran ${visualizacion.nombres_derivaciones.length} de las 12 derivaciones.`;
+
+  dibujarEcgConGradCam(lienzoEcg, visualizacion);
+  textoZonas.textContent = describirZonas(visualizacion.importancia_por_zona, esIam);
+  mostrarRepartoZonas(visualizacion.importancia_por_zona ?? {});
+  mostrarRegiones(visualizacion);
 }
 
 function mostrarRepartoZonas(importanciaPorZona) {
@@ -131,11 +181,55 @@ function mostrarRepartoZonas(importanciaPorZona) {
   zonas.forEach(([zona, valor]) => {
     const fila = document.createElement("div");
     fila.className = "fila-zona";
-    fila.innerHTML =
-      `<span>${NOMBRES_ZONA[zona] ?? zona}</span>` +
-      `<span class="barra-zona"><span style="width:${(valor * 100).toFixed(1)}%"></span></span>` +
-      `<span class="valor-zona">${formatearPorcentaje(valor)}</span>`;
+
+    const nombre = document.createElement("span");
+    nombre.className = "nombre-zona";
+    nombre.textContent = ZONAS_LATIDO[zona]?.nombre ?? zona;
+    nombre.title = ZONAS_LATIDO[zona]?.descripcion ?? "";
+
+    const barra = document.createElement("span");
+    barra.className = "barra-zona";
+    const relleno = document.createElement("span");
+    relleno.style.width = `${(valor * 100).toFixed(1)}%`;
+    barra.appendChild(relleno);
+
+    const porcentaje = document.createElement("span");
+    porcentaje.className = "valor-zona";
+    porcentaje.textContent = formatearPorcentaje(valor);
+
+    const descripcion = document.createElement("span");
+    descripcion.className = "descripcion-zona";
+    descripcion.textContent = ZONAS_LATIDO[zona]?.descripcion ?? "";
+
+    fila.append(nombre, barra, porcentaje, descripcion);
     repartoZonas.appendChild(fila);
+  });
+}
+
+function mostrarRegiones(visualizacion) {
+  listaRegiones.innerHTML = "";
+  const regiones = [...(visualizacion.regiones ?? [])].sort(
+    (a, b) => b.importancia_media - a.importancia_media,
+  );
+  if (!regiones.length) {
+    bloqueRegiones.classList.add("oculto");
+    return;
+  }
+  bloqueRegiones.classList.remove("oculto");
+
+  regiones.forEach((region) => {
+    const aSegundos = (muestra) =>
+      muestraASegundos(muestra, visualizacion.muestras, visualizacion.duracion_segundos ?? 10).toFixed(1);
+    const zona = ZONAS_LATIDO[region.zona_sugerida] ?? ZONAS_LATIDO.indeterminada;
+
+    const item = document.createElement("li");
+    const encabezado = document.createElement("strong");
+    encabezado.textContent = `Del segundo ${aSegundos(region.inicio)} al ${aSegundos(region.fin)}`;
+    const detalle = document.createElement("span");
+    detalle.textContent = ` · ${zona.nombre} · influencia ${formatearPorcentaje(region.importancia_media)}`;
+    detalle.title = zona.descripcion;
+    item.append(encabezado, detalle);
+    listaRegiones.appendChild(item);
   });
 }
 
@@ -144,6 +238,7 @@ function ocultarGrafico() {
   panelGrafico.classList.add("oculto");
   repartoZonas.innerHTML = "";
   listaRegiones.innerHTML = "";
+  textoZonas.textContent = "";
   detalleGrafico.textContent = "";
 }
 
@@ -167,9 +262,9 @@ async function cargarHistorial() {
       fila.append(
         crearCelda(new Date(registro.creado_en).toLocaleString("es-MX")),
         crearCelda(registro.nombre_archivo),
-        crearCelda(registro.etiqueta.replaceAll("_", " "), registro.etiqueta),
-        crearCelda(formatearPorcentaje(registro.probabilidad_iam)),
-        crearCelda(NOMBRES_ZONA[registro.zona_predominante] ?? "—"),
+        crearCelda(ETIQUETAS_RESULTADO[registro.etiqueta] ?? registro.etiqueta, registro.etiqueta),
+        crearCelda(formatearPorcentaje(registro.probabilidad_iam, 1)),
+        crearCelda(ZONAS_LATIDO[registro.zona_predominante]?.nombre ?? "—"),
       );
       cuerpoHistorial.appendChild(fila);
     });
@@ -183,31 +278,28 @@ function limpiarFormulario() {
   formulario.reset();
   actualizarNombreArchivo();
   tarjetaResultado.classList.add("oculto");
-  valorMensaje.textContent = "";
-  rellenoConfianza.style.width = "0%";
   ocultarGrafico();
+}
+
+function mostrarEstado(texto, clase = "") {
+  estadoConexion.textContent = texto;
+  estadoConexion.className = `estado-conexion ${clase}`.trim();
 }
 
 async function comprobarApi() {
   if (esModoEstatico()) {
-    estadoConexion.textContent =
-      "Ejemplos precargados";
-    estadoConexion.className = "estado-conexion ok";
+    mostrarEstado("Versión de demostración: puede ver ejemplos reales ya analizados.", "ok");
     return;
   }
   try {
-    const activa = await verificarSaludApi();
-    if (activa) {
-      estadoConexion.textContent = "API conectada · modelo ResNet1D listo";
-      estadoConexion.className = "estado-conexion ok";
-      cargarHistorial();
-      return;
-    }
-    throw new Error("Sin respuesta");
+    if (!(await verificarSaludApi())) throw new Error("Sin respuesta");
+    mostrarEstado("Sistema listo para analizar.", "ok");
+    cargarHistorial();
   } catch {
-    estadoConexion.textContent =
-      "API no disponible. Puedes usar «Ver ejemplo PTB-XL» si hay demos locales.";
-    estadoConexion.className = "estado-conexion error";
+    mostrarEstado(
+      "El servidor de análisis no responde. Puede usar «Ver un ejemplo real» si hay ejemplos guardados.",
+      "error",
+    );
   }
 }
 
@@ -241,32 +333,27 @@ botonLimpiar.addEventListener("click", limpiarFormulario);
 botonDemo.addEventListener("click", async () => {
   botonDemo.disabled = true;
   botonDemo.textContent = "Cargando…";
-  estadoConexion.textContent = "Generando visualización Grad-CAM…";
-  estadoConexion.className = "estado-conexion";
+  mostrarEstado("Cargando ejemplo…");
 
   try {
     const visualizacion = await obtenerVisualizacionDemo(indiceDemo);
     indiceDemo += 1;
 
-    mostrarResultado({
-      nombre_archivo: `demo_validacion_${visualizacion.indice}`,
-      etiqueta: visualizacion.etiqueta_real,
-      probabilidad_iam: visualizacion.probabilidad_iam,
-      confianza: visualizacion.probabilidad_iam,
-      mensaje: visualizacion.mensaje,
-      mapa_explicabilidad_disponible: true,
+    const interpretacion = mostrarResultado({
+      nombre: `Ejemplo PTB-XL n.º ${visualizacion.indice}`,
+      probabilidad: visualizacion.probabilidad_iam,
+      umbral: visualizacion.umbral_decision ?? UMBRAL_SIN_DATO,
+      etiquetaReal: visualizacion.etiqueta_real,
     });
-    mostrarGrafico(visualizacion);
-    estadoConexion.textContent = "Demo Grad-CAM lista";
-    estadoConexion.className = "estado-conexion ok";
+    mostrarGrafico(visualizacion, interpretacion.esIam);
+    mostrarEstado("Ejemplo cargado. Pulse de nuevo para ver otro.", "ok");
+    tarjetaResultado.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     ocultarGrafico();
-    estadoConexion.textContent =
-      error instanceof Error ? error.message : "No se pudo cargar la demo.";
-    estadoConexion.className = "estado-conexion error";
+    mostrarEstado(error instanceof Error ? error.message : "No se pudo cargar el ejemplo.", "error");
   } finally {
     botonDemo.disabled = false;
-    botonDemo.textContent = "Ver ejemplo PTB-XL";
+    botonDemo.textContent = "Ver un ejemplo real";
   }
 });
 
@@ -281,27 +368,34 @@ formulario.addEventListener("submit", async (evento) => {
 
   botonAnalizar.disabled = true;
   botonAnalizar.textContent = "Analizando…";
-  estadoConexion.textContent = "Analizando ECG con la ResNet1D…";
-  estadoConexion.className = "estado-conexion";
+  mostrarEstado("Analizando el electrocardiograma…");
 
   try {
     const resultado = await analizarElectrocardiograma(archivos, campoFrecuencia.value);
-    mostrarResultado(resultado);
+    if (resultado.etiqueta === "pendiente") {
+      mostrarSinAnalisis(resultado.nombre_archivo, resultado.mensaje);
+      ocultarGrafico();
+      mostrarEstado("Análisis en vivo no disponible.", "error");
+      return;
+    }
+
+    const interpretacion = mostrarResultado({
+      nombre: resultado.nombre_archivo,
+      probabilidad: resultado.probabilidad_iam,
+      umbral: resultado.umbral_decision ?? UMBRAL_SIN_DATO,
+    });
     if (resultado.visualizacion) {
-      mostrarGrafico(resultado.visualizacion);
-      estadoConexion.textContent = "Análisis completado";
+      mostrarGrafico(resultado.visualizacion, interpretacion.esIam);
     } else {
       ocultarGrafico();
-      estadoConexion.textContent = resultado.mensaje ?? "Análisis completado";
     }
-    estadoConexion.className = "estado-conexion ok";
+    mostrarEstado("Análisis completado.", "ok");
+    tarjetaResultado.scrollIntoView({ behavior: "smooth", block: "start" });
     cargarHistorial();
   } catch (error) {
     tarjetaResultado.classList.add("oculto");
     ocultarGrafico();
-    estadoConexion.textContent =
-      error instanceof Error ? error.message : "Ocurrió un error inesperado.";
-    estadoConexion.className = "estado-conexion error";
+    mostrarEstado(error instanceof Error ? error.message : "Ocurrió un error inesperado.", "error");
   } finally {
     botonAnalizar.disabled = !obtenerArchivosSeleccionados().length;
     botonAnalizar.textContent = "Analizar";

@@ -29,12 +29,14 @@ def construir_visualizacion(
     max_derivaciones: int = 6,
     indice: int | None = None,
     etiqueta_real: str | None = None,
+    umbral_decision: float | None = None,
 ) -> VisualizacionEcg:
     """
     Ejecuta Grad-CAM sobre la clase IAM y empaqueta los datos para el navegador.
 
     Args:
         senal: ECG preprocesado con forma (12, 1000).
+        umbral_decision: probabilidad a partir de la cual se clasifica como IAM.
     """
     with proveedor.candado:
         modelo = proveedor.obtener()
@@ -63,9 +65,11 @@ def construir_visualizacion(
         nombres_derivaciones=NOMBRES_DERIVACIONES[:numero_derivaciones],
         frecuencia_muestreo=FRECUENCIA_MODELO,
         muestras=senal_web.shape[1],
+        duracion_segundos=senal.shape[1] / FRECUENCIA_MODELO,
         senales=np.round(senal_web, 3).tolist(),
         mapa_grad_cam=np.round(mapa_web, 3).tolist(),
         probabilidad_iam=float(resultado.probabilidad_clase),
+        umbral_decision=umbral_decision,
         regiones=[
             RegionVisual(
                 inicio=region.inicio_muestra // PASO_SUBMUESTREO_WEB,

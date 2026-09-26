@@ -84,7 +84,7 @@
               Analizar
             </button>
             <button id="boton-demo" type="button" class="boton boton-secundario">
-              Ver ejemplo PTB-XL
+              Ver un ejemplo real
             </button>
             <button id="boton-limpiar" type="button" class="boton boton-secundario">
               Limpiar
@@ -97,46 +97,117 @@
         </div>
 
         <article id="tarjeta-resultado" class="tarjeta-resultado oculto" aria-live="polite">
-          <header>
-            <h3>Resultado</h3>
-            <span id="insignia-etiqueta" class="insignia-etiqueta">pendiente</span>
-          </header>
+          <div id="veredicto" class="veredicto">
+            <span id="icono-veredicto" class="icono-veredicto" aria-hidden="true"></span>
+            <div>
+              <p class="veredicto-antetitulo">Resultado del análisis</p>
+              <h3 id="titulo-veredicto" class="titulo-veredicto">—</h3>
+              <p id="explicacion-veredicto" class="explicacion-veredicto"></p>
+            </div>
+          </div>
+
+          <section id="bloque-probabilidad" class="bloque-probabilidad" aria-label="Probabilidad estimada">
+            <div class="fila-probabilidad">
+              <span>Probabilidad de infarto estimada por el modelo</span>
+              <strong id="valor-probabilidad">—</strong>
+            </div>
+            <div class="escala-probabilidad">
+              <span id="tramo-sin-iam" class="tramo tramo-sin-iam"></span>
+              <span id="tramo-iam" class="tramo tramo-iam"></span>
+              <span id="marcador-umbral" class="marcador-umbral">
+                <span id="texto-umbral" class="texto-umbral">Umbral</span>
+              </span>
+              <span id="marcador-paciente" class="marcador-paciente" title="Este ECG"></span>
+            </div>
+            <div class="leyenda-escala">
+              <span>0 % · sin signos de infarto</span>
+              <span>100 % · signos claros de infarto</span>
+            </div>
+            <p id="texto-probabilidad" class="texto-apoyo"></p>
+          </section>
+
           <dl class="rejilla-metricas">
             <div>
-              <dt>Archivo</dt>
+              <dt>Seguridad del resultado</dt>
+              <dd id="valor-certeza">—</dd>
+              <p id="texto-certeza" class="texto-apoyo pequeno"></p>
+            </div>
+            <div>
+              <dt>ECG analizado</dt>
               <dd id="valor-archivo">—</dd>
             </div>
-            <div>
-              <dt>Probabilidad IAM</dt>
-              <dd id="valor-probabilidad">—</dd>
-            </div>
-            <div>
-              <dt>Confianza</dt>
-              <dd id="valor-confianza">—</dd>
-            </div>
-            <div>
-              <dt>Explicabilidad</dt>
-              <dd id="valor-explicabilidad">—</dd>
-            </div>
           </dl>
-          <p id="valor-mensaje" class="mensaje-resultado"></p>
-          <div class="barra-confianza" aria-hidden="true">
-            <span id="relleno-confianza"></span>
+
+          <div id="bloque-comparacion" class="bloque-comparacion oculto">
+            <p>
+              <span class="rotulo">Diagnóstico de los cardiólogos (PTB-XL):</span>
+              <strong id="valor-real">—</strong>
+            </p>
+            <p id="valor-acierto" class="valor-acierto"></p>
           </div>
+
+          <div id="bloque-recomendacion" class="bloque-recomendacion">
+            <h4>¿Qué hacer ahora?</h4>
+            <p id="texto-recomendacion"></p>
+          </div>
+
+          <details class="bloque-fiabilidad">
+            <summary>¿Qué tan confiable es este sistema?</summary>
+            <p>
+              Se probó con <strong>2 198 electrocardiogramas</strong> que el modelo nunca había
+              visto, ya diagnosticados por cardiólogos:
+            </p>
+            <ul>
+              <li>De cada <strong>100 ECG con infarto</strong>, detectó correctamente <strong>84</strong>.</li>
+              <li>De cada <strong>100 ECG sin infarto</strong>, los descartó correctamente <strong>84</strong>.</li>
+              <li>
+                Su capacidad global para distinguir ambos casos (AUC) es de <strong>0.925</strong>,
+                donde 1 sería perfecta y 0.5 equivaldría al azar.
+              </li>
+            </ul>
+            <p>
+              Es una herramienta de apoyo: puede equivocarse en ambos sentidos y no reemplaza la
+              valoración de un médico.
+            </p>
+          </details>
         </article>
 
         <section id="panel-grafico" class="panel-grafico oculto" aria-labelledby="titulo-grafico">
           <div class="panel-grafico-cabecera">
-            <h3 id="titulo-grafico">Señal ECG + Grad-CAM</h3>
+            <h3 id="titulo-grafico">¿En qué partes del ECG se fijó el modelo?</h3>
+            <p class="texto-apoyo">
+              Cada línea es una <strong>derivación</strong>: una "vista" distinta de la actividad
+              eléctrica del corazón durante 10 segundos. El fondo se colorea según cuánto influyó
+              cada momento en la decisión del modelo; la franja inferior resume esa influencia.
+            </p>
+            <div class="leyenda-calor" aria-hidden="true">
+              <span>Poca influencia</span>
+              <span class="gradiente-calor"></span>
+              <span>Mucha influencia</span>
+            </div>
             <p id="detalle-grafico" class="detalle-grafico"></p>
           </div>
           <canvas id="lienzo-ecg" class="lienzo-ecg" width="900" height="480"></canvas>
-          <div id="reparto-zonas" class="reparto-zonas" aria-label="Reparto de importancia por zona clínica"></div>
-          <ul id="lista-regiones" class="lista-regiones"></ul>
+
+          <div class="bloque-zonas">
+            <h4>¿Qué parte del latido pesó más?</h4>
+            <p id="texto-zonas" class="texto-apoyo"></p>
+            <div id="reparto-zonas" class="reparto-zonas" aria-label="Influencia por zona del latido"></div>
+          </div>
+
+          <div id="bloque-regiones" class="bloque-regiones">
+            <h4>Momentos más relevantes del trazo</h4>
+            <ul id="lista-regiones" class="lista-regiones"></ul>
+          </div>
+
+          <p class="nota-limitacion">
+            Esta explicación (Grad-CAM) es orientativa: señala dónde "miró" el modelo, pero no
+            confirma por sí sola que exista una lesión.
+          </p>
         </section>
 
         <section id="panel-historial" class="panel-historial oculto" aria-labelledby="titulo-historial">
-          <h3 id="titulo-historial">Historial reciente</h3>
+          <h3 id="titulo-historial">Análisis recientes</h3>
           <div class="contenedor-tabla">
             <table class="tabla-historial">
               <thead>
@@ -144,8 +215,8 @@
                   <th>Fecha</th>
                   <th>Archivo</th>
                   <th>Resultado</th>
-                  <th>P(IAM)</th>
-                  <th>Zona predominante</th>
+                  <th>Probabilidad</th>
+                  <th>Zona que más pesó</th>
                 </tr>
               </thead>
               <tbody id="cuerpo-historial"></tbody>
