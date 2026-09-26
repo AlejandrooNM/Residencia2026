@@ -6,7 +6,11 @@ Sistema de apoyo diagnóstico que analiza electrocardiogramas de 12 derivaciones
 mediante una red neuronal convolucional residual (ResNet 1D) entrenada con el
 dataset PTB-XL, e incluye explicabilidad con Grad-CAM.
 
-> Herramienta de apoyo. No sustituye el juicio clínico de un especialista.
+**Usuarios previstos:** médicos generales, estudiantes de medicina y cardiólogos. La interfaz
+presenta el resultado con terminología clínica, métricas de desempeño (sensibilidad,
+especificidad, VPP/VPN) y una sugerencia de abordaje.
+
+> Herramienta de apoyo a la decisión clínica. No sustituye el juicio del médico tratante.
 
 ## Qué NO viene en el repositorio (a propósito)
 

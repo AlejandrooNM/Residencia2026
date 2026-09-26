@@ -97,15 +97,17 @@ function mostrarComparacion(etiquetaReal, esIamPredicho) {
     return;
   }
   const esIamReal = etiquetaReal === "iam_detectado";
-  valorReal.textContent = esIamReal ? "Infarto" : "Sin infarto";
+  valorReal.textContent = esIamReal ? "IAM" : "Sin IAM";
 
   const acerto = esIamReal === esIamPredicho;
-  let texto = "El modelo acertó en este ejemplo.";
+  let texto = esIamReal
+    ? "Verdadero positivo: la predicción concuerda con el diagnóstico de referencia."
+    : "Verdadero negativo: la predicción concuerda con el diagnóstico de referencia.";
   if (!acerto) {
     texto = esIamReal
-      ? "El modelo se equivocó: este ECG sí tenía infarto y no lo detectó (falso negativo). " +
-        "Por eso un resultado negativo nunca descarta un infarto por sí solo."
-      : "El modelo se equivocó: marcó posible infarto en un ECG que no lo tenía (falso positivo).";
+      ? "Falso negativo: el registro tiene diagnóstico de IAM y el modelo no lo detectó. " +
+        "Ilustra por qué un resultado negativo no excluye el diagnóstico."
+      : "Falso positivo: el modelo clasificó como IAM un registro sin ese diagnóstico.";
   }
   valorAcierto.textContent = texto;
   valorAcierto.className = `valor-acierto ${acerto ? "acierto" : "error"}`;
@@ -163,9 +165,8 @@ function mostrarGrafico(visualizacion, esIam) {
   panelGrafico.classList.remove("oculto");
   detalleGrafico.textContent =
     visualizacion.origen === "carga_usuario"
-      ? `Se muestran ${visualizacion.nombres_derivaciones.length} de las 12 derivaciones.`
-      : `Ejemplo n.º ${visualizacion.indice} del conjunto de validación PTB-XL · ` +
-        `se muestran ${visualizacion.nombres_derivaciones.length} de las 12 derivaciones.`;
+      ? "Registro cargado por el usuario, remuestreado a 100 Hz."
+      : `Registro n.º ${visualizacion.indice} del conjunto de validación PTB-XL (100 Hz).`;
 
   dibujarEcgConGradCam(lienzoEcg, visualizacion);
   textoZonas.textContent = describirZonas(visualizacion.importancia_por_zona, esIam);
@@ -224,9 +225,9 @@ function mostrarRegiones(visualizacion) {
 
     const item = document.createElement("li");
     const encabezado = document.createElement("strong");
-    encabezado.textContent = `Del segundo ${aSegundos(region.inicio)} al ${aSegundos(region.fin)}`;
+    encabezado.textContent = `${aSegundos(region.inicio)}–${aSegundos(region.fin)} s`;
     const detalle = document.createElement("span");
-    detalle.textContent = ` · ${zona.nombre} · influencia ${formatearPorcentaje(region.importancia_media)}`;
+    detalle.textContent = ` · ${zona.nombre} · activación media ${formatearPorcentaje(region.importancia_media)}`;
     detalle.title = zona.descripcion;
     item.append(encabezado, detalle);
     listaRegiones.appendChild(item);
@@ -297,7 +298,7 @@ async function comprobarApi() {
     cargarHistorial();
   } catch {
     mostrarEstado(
-      "El servidor de análisis no responde. Puede usar «Ver un ejemplo real» si hay ejemplos guardados.",
+      "El servidor de análisis no responde. Puede usar «Ver caso de ejemplo» si hay casos guardados.",
       "error",
     );
   }
@@ -353,7 +354,7 @@ botonDemo.addEventListener("click", async () => {
     mostrarEstado(error instanceof Error ? error.message : "No se pudo cargar el ejemplo.", "error");
   } finally {
     botonDemo.disabled = false;
-    botonDemo.textContent = "Ver un ejemplo real";
+    botonDemo.textContent = "Ver caso de ejemplo";
   }
 });
 

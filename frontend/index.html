@@ -19,6 +19,7 @@
       <div class="barra-interior">
         <p class="marca">CardiologIA</p>
         <span class="insignia-beta">Beta</span>
+        <span class="insignia-profesional">Uso médico</span>
       </div>
     </header>
 
@@ -27,10 +28,15 @@
         <p class="marca-hero">CardiologIA</p>
         <h1 id="titulo-hero">Sistema de apoyo diagnóstico de IAM en ECG</h1>
         <p class="lead">
-          Cargue un electrocardiograma de 12 derivaciones y obtenga una
-          estimación asistida por red neuronal residual.
+          Herramienta de apoyo a la decisión clínica que analiza un electrocardiograma de 12
+          derivaciones con una red neuronal residual (ResNet1D) y señala, mediante Grad-CAM, las
+          regiones del trazo que sustentan su predicción.
         </p>
-        
+        <p class="aviso-audiencia">
+          <strong>Dirigida a profesionales de la salud:</strong> médicos generales, estudiantes de
+          medicina y cardiólogos. Complementa, pero no sustituye, la interpretación clínica del ECG.
+        </p>
+
         <svg class="trazo-ecg" viewBox="0 0 800 120" preserveAspectRatio="none" aria-hidden="true">
           <path
             class="onda"
@@ -84,7 +90,7 @@
               Analizar
             </button>
             <button id="boton-demo" type="button" class="boton boton-secundario">
-              Ver un ejemplo real
+              Ver caso de ejemplo
             </button>
             <button id="boton-limpiar" type="button" class="boton boton-secundario">
               Limpiar
@@ -108,7 +114,7 @@
 
           <section id="bloque-probabilidad" class="bloque-probabilidad" aria-label="Probabilidad estimada">
             <div class="fila-probabilidad">
-              <span>Probabilidad de infarto estimada por el modelo</span>
+              <span>Probabilidad de IAM estimada por el modelo</span>
               <strong id="valor-probabilidad">—</strong>
             </div>
             <div class="escala-probabilidad">
@@ -120,89 +126,98 @@
               <span id="marcador-paciente" class="marcador-paciente" title="Este ECG"></span>
             </div>
             <div class="leyenda-escala">
-              <span>0 % · sin signos de infarto</span>
-              <span>100 % · signos claros de infarto</span>
+              <span>0 % · sin patrón de IAM</span>
+              <span>100 % · patrón de IAM</span>
             </div>
             <p id="texto-probabilidad" class="texto-apoyo"></p>
           </section>
 
           <dl class="rejilla-metricas">
             <div>
-              <dt>Seguridad del resultado</dt>
+              <dt>Certeza de la predicción</dt>
               <dd id="valor-certeza">—</dd>
               <p id="texto-certeza" class="texto-apoyo pequeno"></p>
             </div>
             <div>
-              <dt>ECG analizado</dt>
+              <dt>Registro analizado</dt>
               <dd id="valor-archivo">—</dd>
             </div>
           </dl>
 
           <div id="bloque-comparacion" class="bloque-comparacion oculto">
             <p>
-              <span class="rotulo">Diagnóstico de los cardiólogos (PTB-XL):</span>
+              <span class="rotulo">Diagnóstico de referencia (cardiólogos, PTB-XL):</span>
               <strong id="valor-real">—</strong>
             </p>
             <p id="valor-acierto" class="valor-acierto"></p>
           </div>
 
           <div id="bloque-recomendacion" class="bloque-recomendacion">
-            <h4>¿Qué hacer ahora?</h4>
+            <h4>Sugerencia de abordaje</h4>
             <p id="texto-recomendacion"></p>
           </div>
 
           <details class="bloque-fiabilidad">
-            <summary>¿Qué tan confiable es este sistema?</summary>
+            <summary>Desempeño y limitaciones del modelo</summary>
             <p>
-              Se probó con <strong>2 198 electrocardiogramas</strong> que el modelo nunca había
-              visto, ya diagnosticados por cardiólogos:
+              Evaluado en el fold 10 de PTB-XL: <strong>2 198 ECG</strong> de pacientes no
+              incluidos en el entrenamiento, con diagnóstico de referencia emitido por cardiólogos.
+              Prevalencia de IAM: 25 %. Punto de corte: 32 %.
             </p>
             <ul>
-              <li>De cada <strong>100 ECG con infarto</strong>, detectó correctamente <strong>84</strong>.</li>
-              <li>De cada <strong>100 ECG sin infarto</strong>, los descartó correctamente <strong>84</strong>.</li>
+              <li>Sensibilidad: <strong>0.840</strong> (IC 95 % 0.808–0.871).</li>
+              <li>Especificidad: <strong>0.843</strong> (IC 95 % 0.825–0.861).</li>
+              <li>AUC-ROC: <strong>0.925</strong> (IC 95 % 0.913–0.937).</li>
               <li>
-                Su capacidad global para distinguir ambos casos (AUC) es de <strong>0.925</strong>,
-                donde 1 sería perfecta y 0.5 equivaldría al azar.
+                VPP <strong>0.64</strong> y VPN <strong>0.94</strong> con esa prevalencia; ambos
+                cambian con la prevalencia de su población.
               </li>
             </ul>
-            <p>
-              Es una herramienta de apoyo: puede equivocarse en ambos sentidos y no reemplaza la
-              valoración de un médico.
-            </p>
+            <p>Limitaciones:</p>
+            <ul>
+              <li>
+                Entrenado con la superclase MI de PTB-XL, que no distingue IAM agudo de infarto
+                antiguo.
+              </li>
+              <li>Clasificación binaria IAM / no IAM: no diagnostica arritmias, bloqueos ni otras entidades.</li>
+              <li>No sustituye la valoración clínica, los biomarcadores ni la interpretación del especialista.</li>
+            </ul>
           </details>
         </article>
 
         <section id="panel-grafico" class="panel-grafico oculto" aria-labelledby="titulo-grafico">
           <div class="panel-grafico-cabecera">
-            <h3 id="titulo-grafico">¿En qué partes del ECG se fijó el modelo?</h3>
+            <h3 id="titulo-grafico">Explicabilidad: regiones que sustentan la predicción</h3>
             <p class="texto-apoyo">
-              Cada línea es una <strong>derivación</strong>: una "vista" distinta de la actividad
-              eléctrica del corazón durante 10 segundos. El fondo se colorea según cuánto influyó
-              cada momento en la decisión del modelo; la franja inferior resume esa influencia.
+              Derivaciones del plano frontal (I, II, III, aVR, aVL, aVF), 10 s, tras filtrado
+              0.5–40 Hz. El fondo codifica la activación Grad-CAM para la clase IAM: a mayor
+              intensidad de rojo, mayor contribución a la predicción. El mapa es
+              <strong>temporal y común a las 12 derivaciones</strong>: indica en qué momento del
+              trazo se apoyó el modelo, no qué derivación está afectada.
             </p>
             <div class="leyenda-calor" aria-hidden="true">
-              <span>Poca influencia</span>
+              <span>Activación baja</span>
               <span class="gradiente-calor"></span>
-              <span>Mucha influencia</span>
+              <span>Activación alta</span>
             </div>
             <p id="detalle-grafico" class="detalle-grafico"></p>
           </div>
           <canvas id="lienzo-ecg" class="lienzo-ecg" width="900" height="480"></canvas>
 
           <div class="bloque-zonas">
-            <h4>¿Qué parte del latido pesó más?</h4>
+            <h4>Activación por componente del latido</h4>
             <p id="texto-zonas" class="texto-apoyo"></p>
             <div id="reparto-zonas" class="reparto-zonas" aria-label="Influencia por zona del latido"></div>
           </div>
 
           <div id="bloque-regiones" class="bloque-regiones">
-            <h4>Momentos más relevantes del trazo</h4>
+            <h4>Segmentos con mayor activación</h4>
             <ul id="lista-regiones" class="lista-regiones"></ul>
           </div>
 
           <p class="nota-limitacion">
-            Esta explicación (Grad-CAM) es orientativa: señala dónde "miró" el modelo, pero no
-            confirma por sí sola que exista una lesión.
+            Grad-CAM es orientativo: muestra en qué se apoyó el modelo, pero su resolución temporal
+            es limitada y no equivale a un hallazgo electrocardiográfico confirmado.
           </p>
         </section>
 
@@ -228,8 +243,9 @@
 
     <footer class="pie">
       <p>
-        Herramienta de apoyo para primer nivel de atención. No sustituye el juicio
-        clínico de un especialista.
+        Uso exclusivo para profesionales de la salud y estudiantes de medicina. Herramienta de
+        apoyo a la decisión clínica; no sustituye el juicio del médico tratante ni constituye un
+        diagnóstico.
       </p>
       <p class="pie-meta">Residencia profesional · Instituto Tecnológico de Tijuana · 2026</p>
     </footer>

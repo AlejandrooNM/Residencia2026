@@ -56,7 +56,7 @@ export async function analizarElectrocardiograma(archivos, frecuenciaMuestreo = 
       confianza: 0,
       mensaje:
         "Esta versión pública no puede analizar archivos nuevos porque el modelo corre en un " +
-        "servidor aparte. Pulse «Ver un ejemplo real» para ver ECG ya analizados.",
+        "servidor aparte. Pulse «Ver caso de ejemplo» para revisar registros de PTB-XL ya analizados.",
       mapa_explicabilidad_disponible: false,
     };
   }
