@@ -44,6 +44,12 @@ const textoProbabilidad = document.getElementById("texto-probabilidad");
 const valorCerteza = document.getElementById("valor-certeza");
 const textoCerteza = document.getElementById("texto-certeza");
 const valorArchivo = document.getElementById("valor-archivo");
+const listaAdvertencias = document.getElementById("lista-advertencias");
+const datoFrecuencia = document.getElementById("dato-frecuencia");
+const valorFrecuencia = document.getElementById("valor-frecuencia");
+const textoOrigenFrecuencia = document.getElementById("texto-origen-frecuencia");
+const datoRegistro = document.getElementById("dato-registro");
+const valorRegistro = document.getElementById("valor-registro");
 const bloqueComparacion = document.getElementById("bloque-comparacion");
 const valorReal = document.getElementById("valor-real");
 const valorAcierto = document.getElementById("valor-acierto");
@@ -59,6 +65,13 @@ const panelHistorial = document.getElementById("panel-historial");
 const cuerpoHistorial = document.getElementById("cuerpo-historial");
 
 const UMBRAL_SIN_DATO = 0.5;
+
+const ORIGENES_FRECUENCIA = {
+  cabecera: "Leída de la cabecera del registro WFDB.",
+  declarada: "Indicada manualmente en «Opciones avanzadas».",
+  columna_tiempo: "Calculada a partir de la columna de tiempo del archivo.",
+  estimada: "Detectada automáticamente a partir de la frecuencia cardiaca y la anchura del QRS.",
+};
 
 let indiceDemo = 0;
 let ultimaVisualizacion = null;
@@ -111,15 +124,58 @@ function mostrarComparacion(etiquetaReal, esIamPredicho) {
   bloqueComparacion.classList.remove("oculto");
 }
 
+function mostrarAdvertencias(advertencias) {
+  listaAdvertencias.innerHTML = "";
+  advertencias.forEach((texto) => {
+    const item = document.createElement("li");
+    item.textContent = texto;
+    listaAdvertencias.appendChild(item);
+  });
+  listaAdvertencias.classList.toggle("oculto", !advertencias.length);
+}
+
+/**
+ * @param {{
+ *   frecuencia_original?: number | null,
+ *   origen_frecuencia?: string | null,
+ *   duracion_original_segundos?: number | null,
+ *   frecuencia_cardiaca_lpm?: number | null,
+ * } | null} registro Datos de lectura del archivo; null en los casos de ejemplo
+ */
+function mostrarDatosRegistro(registro) {
+  const frecuencia = registro?.frecuencia_original;
+  datoFrecuencia.classList.toggle("oculto", !frecuencia);
+  if (frecuencia) {
+    valorFrecuencia.textContent = `${frecuencia} Hz`;
+    textoOrigenFrecuencia.textContent = ORIGENES_FRECUENCIA[registro.origen_frecuencia] ?? "";
+  }
+
+  const duracion = registro?.duracion_original_segundos;
+  datoRegistro.classList.toggle("oculto", !duracion);
+  if (duracion) {
+    const fc = registro.frecuencia_cardiaca_lpm;
+    valorRegistro.textContent = `${duracion.toFixed(1)} s · ${fc ? `${fc} lpm` : "FC no disponible"}`;
+  }
+}
+
 /**
  * @param {{
  *   nombre: string,
  *   probabilidad: number,
  *   umbral: number,
  *   etiquetaReal?: string | null,
+ *   registro?: object | null,
+ *   advertencias?: string[],
  * }} datos
  */
-function mostrarResultado({ nombre, probabilidad, umbral, etiquetaReal = null }) {
+function mostrarResultado({
+  nombre,
+  probabilidad,
+  umbral,
+  etiquetaReal = null,
+  registro = null,
+  advertencias = [],
+}) {
   const interpretacion = interpretarResultado(probabilidad, umbral);
 
   veredicto.className = `veredicto ${interpretacion.esIam ? "iam_detectado" : "sin_iam"}`;
@@ -135,6 +191,8 @@ function mostrarResultado({ nombre, probabilidad, umbral, etiquetaReal = null })
   valorCerteza.className = `certeza-${interpretacion.certeza.nivel.toLowerCase()}`;
   textoCerteza.textContent = interpretacion.certeza.texto;
   valorArchivo.textContent = nombre;
+  mostrarDatosRegistro(registro);
+  mostrarAdvertencias(advertencias);
 
   mostrarComparacion(etiquetaReal, interpretacion.esIam);
 
@@ -151,6 +209,8 @@ function mostrarSinAnalisis(nombre, mensaje) {
   textoCerteza.textContent = "";
   bloqueProbabilidad.classList.add("oculto");
   bloqueComparacion.classList.add("oculto");
+  mostrarDatosRegistro(null);
+  mostrarAdvertencias([]);
   tarjetaResultado.classList.remove("oculto");
 }
 
@@ -378,6 +438,8 @@ formulario.addEventListener("submit", async (evento) => {
       nombre: resultado.nombre_archivo,
       probabilidad: resultado.probabilidad_iam,
       umbral: resultado.umbral_decision ?? UMBRAL_SIN_DATO,
+      registro: resultado,
+      advertencias: resultado.advertencias ?? [],
     });
     if (resultado.visualizacion) {
       mostrarGrafico(resultado.visualizacion, interpretacion.esIam);

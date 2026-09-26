@@ -26,4 +26,14 @@ class ResultadoAnalisis(BaseModel):
     mapa_explicabilidad_disponible: bool = False
     umbral_decision: float | None = None
     frecuencia_original: float | None = None
+    origen_frecuencia: str | None = Field(
+        default=None,
+        description="cabecera | declarada | columna_tiempo | estimada",
+    )
+    duracion_original_segundos: float | None = None
+    frecuencia_cardiaca_lpm: float | None = Field(
+        default=None,
+        description="Estimación orientativa a partir del intervalo RR mediano",
+    )
+    advertencias: list[str] = Field(default_factory=list)
     visualizacion: VisualizacionEcg | None = None

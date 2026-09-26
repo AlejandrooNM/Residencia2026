@@ -243,6 +243,35 @@ body {
   font-weight: 600;
 }
 
+.opciones-avanzadas {
+  color: var(--color-texto-suave);
+  font-size: 0.92rem;
+}
+
+.opciones-avanzadas summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.opciones-avanzadas .campo-frecuencia {
+  margin-top: 0.7rem;
+}
+
+.lista-advertencias {
+  margin: 0 0 1.25rem;
+  padding: 0.8rem 1rem 0.8rem 2rem;
+  border-radius: 10px;
+  border: 1px solid rgba(227, 162, 60, 0.45);
+  background: rgba(227, 162, 60, 0.1);
+  color: var(--color-alerta);
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+
+.lista-advertencias li + li {
+  margin-top: 0.35rem;
+}
+
 .campo-frecuencia {
   display: flex;
   flex-wrap: wrap;
@@ -251,6 +280,11 @@ body {
   gap: 0.6rem;
   color: var(--color-texto-suave);
   font-size: 0.92rem;
+}
+
+.campo-frecuencia > span {
+  flex: 1 1 280px;
+  line-height: 1.45;
 }
 
 .campo-frecuencia select {

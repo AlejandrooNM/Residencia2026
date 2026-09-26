@@ -80,6 +80,11 @@ Abrir: http://127.0.0.1:8000
   de IAM, la etiqueta (según el umbral calibrado) y el mapa Grad-CAM.
   Formatos: par WFDB `.hea` + `.dat` (seleccionar ambos), `.csv`/`.txt` con 12 columnas o `.npy`.
   La señal se remuestrea a 100 Hz y se preprocesa igual que en el entrenamiento.
+- **Frecuencia de muestreo automática**: se lee de la cabecera WFDB o de una columna de tiempo del
+  CSV; si no hay metadatos se estima entre 100/250/500/1000 Hz a partir de la frecuencia cardiaca y
+  la anchura del QRS. En el fold 10 de PTB-XL acierta en el 95.6 % de 3 600 pruebas (7, 10 y 20 s)
+  y avisa cuando la estimación es dudosa (`scripts/evaluar_estimacion_frecuencia.py`, resultados en
+  `documentos/resultados/estimacion_frecuencia.txt`).
 - Archivos de prueba listos en `dataset/ejemplos/` (`ejemplo_con_iam.*`, `ejemplo_sin_iam.*`,
   tomados del conjunto de prueba de PTB-XL, licencia CC-BY 4.0).
 - **Ver ejemplo PTB-XL**: ejemplos de validación con Grad-CAM (requiere datos preprocesados).

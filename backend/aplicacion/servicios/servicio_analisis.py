@@ -73,6 +73,14 @@ class ServicioAnalisis:
             mapa_explicabilidad_disponible=True,
             umbral_decision=self._umbral,
             frecuencia_original=senal_cruda.frecuencia_muestreo,
+            origen_frecuencia=senal_cruda.origen_frecuencia.value,
+            duracion_original_segundos=round(senal_cruda.duracion_segundos, 2),
+            frecuencia_cardiaca_lpm=(
+                round(senal_cruda.frecuencia_cardiaca_lpm)
+                if senal_cruda.frecuencia_cardiaca_lpm is not None
+                else None
+            ),
+            advertencias=list(senal_cruda.advertencias),
             visualizacion=visualizacion,
         )
 

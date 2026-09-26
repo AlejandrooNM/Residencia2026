@@ -3,8 +3,13 @@ Lectura de archivos ECG subidos por el usuario.
 
 Formatos admitidos:
   - WFDB: par .hea + .dat con el mismo nombre (frecuencia tomada de la cabecera).
-  - Tabular: .csv / .txt con 12 columnas (una por derivación), con o sin encabezado.
+  - Tabular: .csv / .txt con 12 columnas (una por derivación), con o sin encabezado
+    y opcionalmente una columna de tiempo.
   - NumPy: .npy con forma (muestras, 12) o (12, muestras).
+
+La frecuencia de muestreo se obtiene, por orden de preferencia, de la cabecera WFDB,
+del valor indicado por el usuario, de la columna de tiempo o, si no hay metadatos,
+de la estimación fisiológica (frecuencia cardiaca y anchura del QRS).
 """
 
 from __future__ import annotations
@@ -13,12 +18,18 @@ import io
 import re
 import tempfile
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import wfdb
 
+from modelo_ia.preprocesamiento import (
+    es_frecuencia_cardiaca_plausible,
+    estimar_frecuencia_muestreo,
+    medir_latidos,
+)
 from modelo_ia.preprocesamiento.pipeline import NOMBRES_DERIVACIONES, NUMERO_DERIVACIONES
 
 EXTENSIONES_TABULARES = {".csv", ".txt"}
@@ -26,12 +37,29 @@ EXTENSION_NUMPY = ".npy"
 EXTENSIONES_WFDB = {".hea", ".dat"}
 EXTENSIONES_ADMITIDAS = EXTENSIONES_TABULARES | EXTENSIONES_WFDB | {EXTENSION_NUMPY}
 
-DURACION_ESTANDAR_SEGUNDOS = 10
-FRECUENCIAS_INFERIBLES = {100, 250, 500, 1000}
+NOMBRES_COLUMNA_TIEMPO = {"T", "TIME", "TIEMPO", "S", "SEC", "SECONDS", "SEGUNDOS", "MS", "MILISEGUNDOS"}
+MUESTRAS_MINIMAS_COLUMNA_TIEMPO = 10
+VARIACION_MAXIMA_PASO = 0.02
+FRECUENCIA_MINIMA_ADMITIDA = 50.0
+FRECUENCIA_MAXIMA_ADMITIDA = 2000.0
+
+AVISO_CERTEZA_BAJA = (
+    "La frecuencia de muestreo se estimó con baja certeza. Si conoce la del equipo, "
+    "indíquela en «Opciones avanzadas» y repita el análisis."
+)
 
 
 class ErrorFormatoEcg(ValueError):
     """El archivo no tiene un formato ECG reconocible."""
+
+
+class OrigenFrecuencia(str, Enum):
+    """De dónde se obtuvo la frecuencia de muestreo."""
+
+    CABECERA = "cabecera"
+    DECLARADA = "declarada"
+    COLUMNA_TIEMPO = "columna_tiempo"
+    ESTIMADA = "estimada"
 
 
 @dataclass(frozen=True)
@@ -41,6 +69,13 @@ class SenalCruda:
     senal: np.ndarray  # (muestras, 12)
     frecuencia_muestreo: float
     formato: str
+    origen_frecuencia: OrigenFrecuencia
+    frecuencia_cardiaca_lpm: float | None = None
+    advertencias: tuple[str, ...] = ()
+
+    @property
+    def duracion_segundos(self) -> float:
+        return self.senal.shape[0] / self.frecuencia_muestreo
 
 
 def leer_archivos_ecg(
@@ -52,7 +87,7 @@ def leer_archivos_ecg(
 
     Args:
         archivos: nombre de archivo -> contenido en bytes.
-        frecuencia_declarada: Hz indicados por el usuario (solo CSV/TXT/NPY).
+        frecuencia_declarada: Hz indicados por el usuario; se ignora en WFDB.
     """
     if not archivos:
         raise ErrorFormatoEcg("No se recibió ningún archivo.")
@@ -66,23 +101,26 @@ def leer_archivos_ecg(
         )
 
     if extensiones & EXTENSIONES_WFDB:
-        return _leer_wfdb(archivos)
+        senal, frecuencia = _leer_wfdb(archivos)
+        return _revisar_fisiologia(senal, frecuencia, "wfdb", OrigenFrecuencia.CABECERA)
 
     if len(archivos) > 1:
         raise ErrorFormatoEcg("Suba un solo archivo CSV/TXT/NPY (o el par .hea + .dat).")
 
     nombre, contenido = next(iter(archivos.items()))
     if Path(nombre).suffix.lower() == EXTENSION_NUMPY:
-        senal, formato = _leer_numpy(contenido), "npy"
+        senal, frecuencia_tiempo, formato = _leer_numpy(contenido), None, "npy"
     else:
-        senal, formato = _leer_tabular(contenido), "tabular"
+        (senal, frecuencia_tiempo), formato = _leer_tabular(contenido), "tabular"
 
     senal = _orientar_muestras_por_derivaciones(senal)
-    frecuencia = _resolver_frecuencia(senal.shape[0], frecuencia_declarada)
-    return SenalCruda(senal=senal, frecuencia_muestreo=frecuencia, formato=formato)
+    frecuencia, origen, advertencias = _resolver_frecuencia(
+        senal, frecuencia_declarada, frecuencia_tiempo
+    )
+    return _revisar_fisiologia(senal, frecuencia, formato, origen, advertencias)
 
 
-def _leer_wfdb(archivos: dict[str, bytes]) -> SenalCruda:
+def _leer_wfdb(archivos: dict[str, bytes]) -> tuple[np.ndarray, float]:
     """
     Lee el par .hea + .dat.
 
@@ -108,7 +146,7 @@ def _leer_wfdb(archivos: dict[str, bytes]) -> SenalCruda:
             raise ErrorFormatoEcg(f"No se pudo leer el registro WFDB: {error}") from error
 
     senal = _reordenar_por_nombres(np.asarray(senal, dtype=np.float64), metadatos.get("sig_name"))
-    return SenalCruda(senal=senal, frecuencia_muestreo=float(metadatos["fs"]), formato="wfdb")
+    return senal, float(metadatos["fs"])
 
 
 def _leer_numpy(contenido: bytes) -> np.ndarray:
@@ -119,7 +157,8 @@ def _leer_numpy(contenido: bytes) -> np.ndarray:
     return np.asarray(arreglo, dtype=np.float64)
 
 
-def _leer_tabular(contenido: bytes) -> np.ndarray:
+def _leer_tabular(contenido: bytes) -> tuple[np.ndarray, float | None]:
+    """Devuelve las 12 derivaciones y, si hay columna de tiempo, la frecuencia que implica."""
     texto = contenido.decode("utf-8-sig", errors="replace")
     primera_linea = texto.lstrip().splitlines()[0] if texto.strip() else ""
     tiene_encabezado = bool(re.search(r"[A-Za-z]", primera_linea))
@@ -135,15 +174,100 @@ def _leer_tabular(contenido: bytes) -> np.ndarray:
         raise ErrorFormatoEcg(f"No se pudo interpretar el archivo de texto: {error}") from error
 
     if tiene_encabezado:
-        nombres = [str(columna) for columna in tabla.columns]
+        nombres = [_normalizar_nombre(str(columna)) for columna in tabla.columns]
         indices = _indices_derivaciones(nombres)
         if indices is not None:
-            return tabla.iloc[:, indices].to_numpy(dtype=np.float64)
+            derivaciones = tabla.iloc[:, indices].to_numpy(dtype=np.float64)
+            return derivaciones, _frecuencia_de_columna_nombrada(tabla, nombres)
 
     valores = tabla.apply(pd.to_numeric, errors="coerce").to_numpy(dtype=np.float64)
     if valores.shape[1] == NUMERO_DERIVACIONES + 1:
-        valores = valores[:, 1:]  # primera columna = tiempo
-    return valores
+        return valores[:, 1:], _frecuencia_desde_tiempo(valores[:, 0], en_milisegundos=None)
+    return valores, None
+
+
+def _frecuencia_de_columna_nombrada(tabla: pd.DataFrame, nombres: list[str]) -> float | None:
+    for posicion, nombre in enumerate(nombres):
+        if nombre in NOMBRES_COLUMNA_TIEMPO or nombre.startswith(("TIME", "TIEMPO")):
+            tiempos = pd.to_numeric(tabla.iloc[:, posicion], errors="coerce").to_numpy(dtype=np.float64)
+            en_milisegundos = "MS" in nombre or "MILI" in nombre
+            return _frecuencia_desde_tiempo(tiempos, en_milisegundos or None)
+    return None
+
+
+def _frecuencia_desde_tiempo(tiempos: np.ndarray, en_milisegundos: bool | None) -> float | None:
+    """
+    Frecuencia implícita en una columna de tiempo con paso constante.
+
+    Args:
+        en_milisegundos: None si la unidad no se conoce; se deduce del tamaño del paso.
+
+    Returns:
+        None si la columna no es un tiempo uniforme o es solo un índice de muestra.
+    """
+    if len(tiempos) < MUESTRAS_MINIMAS_COLUMNA_TIEMPO or not np.all(np.isfinite(tiempos)):
+        return None
+    pasos = np.diff(tiempos)
+    paso = float(np.median(pasos))
+    if paso <= 0 or np.any(pasos <= 0) or np.std(pasos) > VARIACION_MAXIMA_PASO * paso:
+        return None
+
+    if en_milisegundos is None:
+        es_indice = np.isclose(paso, 1.0) and np.allclose(tiempos, np.round(tiempos))
+        if es_indice:
+            return None
+        en_milisegundos = paso >= 0.5
+
+    frecuencia = (1000.0 if en_milisegundos else 1.0) / paso
+    if not FRECUENCIA_MINIMA_ADMITIDA <= frecuencia <= FRECUENCIA_MAXIMA_ADMITIDA:
+        return None
+    redondeada = round(frecuencia)
+    return float(redondeada) if abs(frecuencia - redondeada) <= 0.01 * frecuencia else frecuencia
+
+
+def _resolver_frecuencia(
+    senal: np.ndarray,
+    frecuencia_declarada: float | None,
+    frecuencia_tiempo: float | None,
+) -> tuple[float, OrigenFrecuencia, tuple[str, ...]]:
+    if frecuencia_declarada:
+        return float(frecuencia_declarada), OrigenFrecuencia.DECLARADA, ()
+    if frecuencia_tiempo:
+        return frecuencia_tiempo, OrigenFrecuencia.COLUMNA_TIEMPO, ()
+
+    estimada = estimar_frecuencia_muestreo(senal)
+    if estimada is None:
+        raise ErrorFormatoEcg(
+            "No se pudo detectar automáticamente la frecuencia de muestreo porque no se "
+            "identificaron latidos con claridad. Indíquela en «Opciones avanzadas»."
+        )
+    advertencias = (AVISO_CERTEZA_BAJA,) if estimada.certeza_baja else ()
+    return estimada.valor, OrigenFrecuencia.ESTIMADA, advertencias
+
+
+def _revisar_fisiologia(
+    senal: np.ndarray,
+    frecuencia: float,
+    formato: str,
+    origen: OrigenFrecuencia,
+    advertencias: tuple[str, ...] = (),
+) -> SenalCruda:
+    """Calcula la frecuencia cardiaca y avisa si no es fisiológica con la frecuencia elegida."""
+    medidas = medir_latidos(senal, frecuencia)
+    frecuencia_cardiaca = medidas.frecuencia_cardiaca_lpm if medidas else None
+    if frecuencia_cardiaca is not None and not es_frecuencia_cardiaca_plausible(frecuencia_cardiaca):
+        advertencias += (
+            f"Con {frecuencia:g} Hz la frecuencia cardiaca resultante ({frecuencia_cardiaca:.0f} lpm) "
+            "no es fisiológica: revise la frecuencia de muestreo.",
+        )
+    return SenalCruda(
+        senal=senal,
+        frecuencia_muestreo=frecuencia,
+        formato=formato,
+        origen_frecuencia=origen,
+        frecuencia_cardiaca_lpm=frecuencia_cardiaca,
+        advertencias=advertencias,
+    )
 
 
 def _normalizar_nombre(nombre: str) -> str:
@@ -175,16 +299,4 @@ def _orientar_muestras_por_derivaciones(senal: np.ndarray) -> np.ndarray:
         return senal.T
     raise ErrorFormatoEcg(
         f"Se esperaban {NUMERO_DERIVACIONES} derivaciones; se recibió forma {senal.shape}."
-    )
-
-
-def _resolver_frecuencia(muestras: int, frecuencia_declarada: float | None) -> float:
-    if frecuencia_declarada:
-        return float(frecuencia_declarada)
-    frecuencia_inferida = muestras / DURACION_ESTANDAR_SEGUNDOS
-    if frecuencia_inferida in FRECUENCIAS_INFERIBLES:
-        return frecuencia_inferida
-    raise ErrorFormatoEcg(
-        f"No se pudo inferir la frecuencia de muestreo ({muestras} muestras). "
-        "Indíquela en el formulario."
     )

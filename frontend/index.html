@@ -51,7 +51,8 @@
           <p>
             Formatos admitidos: registro WFDB (suba juntos el <strong>.hea</strong> y el
             <strong>.dat</strong>), <strong>.csv</strong>/<strong>.txt</strong> con 12 columnas
-            (una por derivación) o <strong>.npy</strong>.
+            (una por derivación) o <strong>.npy</strong>. La frecuencia de muestreo se detecta
+            automáticamente.
           </p>
         </div>
 
@@ -74,16 +75,22 @@
             <span id="nombre-archivo" class="nombre-archivo">Ningún archivo seleccionado</span>
           </label>
 
-          <label class="campo-frecuencia" for="frecuencia-muestreo">
-            <span>Frecuencia de muestreo (solo CSV/TXT/NPY)</span>
-            <select id="frecuencia-muestreo" name="frecuencia_muestreo">
-              <option value="">Automática (señal de 10 s)</option>
-              <option value="100">100 Hz</option>
-              <option value="250">250 Hz</option>
-              <option value="500">500 Hz</option>
-              <option value="1000">1000 Hz</option>
-            </select>
-          </label>
+          <details class="opciones-avanzadas">
+            <summary>Opciones avanzadas</summary>
+            <label class="campo-frecuencia" for="frecuencia-muestreo">
+              <span>
+                Forzar frecuencia de muestreo (CSV/TXT/NPY). Úsela solo si conoce la del equipo o
+                el sistema avisa de baja certeza; en WFDB se usa siempre la de la cabecera.
+              </span>
+              <select id="frecuencia-muestreo" name="frecuencia_muestreo">
+                <option value="">Detectar automáticamente (recomendado)</option>
+                <option value="100">100 Hz</option>
+                <option value="250">250 Hz</option>
+                <option value="500">500 Hz</option>
+                <option value="1000">1000 Hz</option>
+              </select>
+            </label>
+          </details>
 
           <div class="fila-acciones">
             <button id="boton-analizar" type="submit" class="boton boton-principal" disabled>
@@ -111,6 +118,8 @@
               <p id="explicacion-veredicto" class="explicacion-veredicto"></p>
             </div>
           </div>
+
+          <ul id="lista-advertencias" class="lista-advertencias oculto" role="alert"></ul>
 
           <section id="bloque-probabilidad" class="bloque-probabilidad" aria-label="Probabilidad estimada">
             <div class="fila-probabilidad">
@@ -141,6 +150,15 @@
             <div>
               <dt>Registro analizado</dt>
               <dd id="valor-archivo">—</dd>
+            </div>
+            <div id="dato-frecuencia" class="oculto">
+              <dt>Frecuencia de muestreo</dt>
+              <dd id="valor-frecuencia">—</dd>
+              <p id="texto-origen-frecuencia" class="texto-apoyo pequeno"></p>
+            </div>
+            <div id="dato-registro" class="oculto">
+              <dt>Duración · FC estimada (orientativa)</dt>
+              <dd id="valor-registro">—</dd>
             </div>
           </dl>
 
