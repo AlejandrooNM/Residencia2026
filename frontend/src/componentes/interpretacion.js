@@ -77,11 +77,6 @@ export function interpretarResultado(probabilidad, umbral) {
       textoProbabilidad:
         `Probabilidad estimada: ${textoProbabilidad}. Punto de corte: ${textoUmbral}, calibrado en ` +
         "validación para priorizar la sensibilidad (≥ 0.85); por eso se sitúa por debajo del 50 %.",
-      recomendacion:
-        "Correlacione con el cuadro clínico (dolor torácico o equivalentes anginosos) y con " +
-        "troponina de alta sensibilidad seriada. Compare con ECG previos y valore ECG seriados y " +
-        "derivaciones adicionales (V7–V9, V3R–V4R). Si se confirma un IAM con elevación del ST, " +
-        "active el protocolo de síndrome coronario agudo de su unidad sin demorar la reperfusión.",
     };
   }
 
@@ -93,11 +88,6 @@ export function interpretarResultado(probabilidad, umbral) {
       "El modelo no identificó en el trazo morfología compatible con infarto agudo de miocardio.",
     textoProbabilidad:
       `Probabilidad estimada: ${textoProbabilidad}, por debajo del punto de corte de ${textoUmbral}.`,
-    recomendacion:
-      "Un resultado negativo no excluye IAM: la sensibilidad en prueba fue de 0.84 (≈ 16 % de " +
-      "falsos negativos) y el ECG inicial puede no ser diagnóstico. Ante sospecha clínica mantenga " +
-      "el abordaje habitual (ECG y troponina seriados, valoración por cardiología). El modelo solo " +
-      "evalúa IAM: un resultado negativo no significa ECG normal ni descarta otras alteraciones.",
   };
 }
 

@@ -152,11 +152,6 @@
             <p id="valor-acierto" class="valor-acierto"></p>
           </div>
 
-          <div id="bloque-recomendacion" class="bloque-recomendacion">
-            <h4>Sugerencia de abordaje</h4>
-            <p id="texto-recomendacion"></p>
-          </div>
-
           <details class="bloque-fiabilidad">
             <summary>Desempeño y limitaciones del modelo</summary>
             <p>
@@ -175,6 +170,10 @@
             </ul>
             <p>Limitaciones:</p>
             <ul>
+              <li>
+                Un resultado negativo no excluye IAM: alrededor de 16 de cada 100 registros con IAM
+                no son detectados.
+              </li>
               <li>
                 Entrenado con la superclase MI de PTB-XL, que no distingue IAM agudo de infarto
                 antiguo.

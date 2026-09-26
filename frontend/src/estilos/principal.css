@@ -519,7 +519,6 @@ body {
 }
 
 .bloque-comparacion,
-.bloque-recomendacion,
 .bloque-fiabilidad {
   margin-top: 1.1rem;
   padding: 0.9rem 1rem;
@@ -549,15 +548,6 @@ body {
 
 .valor-acierto.error {
   color: var(--color-alerta);
-}
-
-.bloque-recomendacion {
-  border-left: 3px solid var(--color-acento);
-}
-
-.bloque-recomendacion p {
-  margin: 0;
-  line-height: 1.55;
 }
 
 .bloque-fiabilidad summary {

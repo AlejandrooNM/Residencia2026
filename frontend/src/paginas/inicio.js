@@ -47,9 +47,6 @@ const valorArchivo = document.getElementById("valor-archivo");
 const bloqueComparacion = document.getElementById("bloque-comparacion");
 const valorReal = document.getElementById("valor-real");
 const valorAcierto = document.getElementById("valor-acierto");
-const bloqueRecomendacion = document.getElementById("bloque-recomendacion");
-const textoRecomendacion = document.getElementById("texto-recomendacion");
-
 const panelGrafico = document.getElementById("panel-grafico");
 const lienzoEcg = document.getElementById("lienzo-ecg");
 const detalleGrafico = document.getElementById("detalle-grafico");
@@ -140,8 +137,6 @@ function mostrarResultado({ nombre, probabilidad, umbral, etiquetaReal = null })
   valorArchivo.textContent = nombre;
 
   mostrarComparacion(etiquetaReal, interpretacion.esIam);
-  bloqueRecomendacion.classList.remove("oculto");
-  textoRecomendacion.textContent = interpretacion.recomendacion;
 
   tarjetaResultado.classList.remove("oculto");
   return interpretacion;
@@ -156,7 +151,6 @@ function mostrarSinAnalisis(nombre, mensaje) {
   textoCerteza.textContent = "";
   bloqueProbabilidad.classList.add("oculto");
   bloqueComparacion.classList.add("oculto");
-  bloqueRecomendacion.classList.add("oculto");
   tarjetaResultado.classList.remove("oculto");
 }
 

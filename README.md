@@ -7,8 +7,8 @@ mediante una red neuronal convolucional residual (ResNet 1D) entrenada con el
 dataset PTB-XL, e incluye explicabilidad con Grad-CAM.
 
 **Usuarios previstos:** médicos generales, estudiantes de medicina y cardiólogos. La interfaz
-presenta el resultado con terminología clínica, métricas de desempeño (sensibilidad,
-especificidad, VPP/VPN) y una sugerencia de abordaje.
+presenta el resultado con terminología clínica y métricas de desempeño (sensibilidad,
+especificidad, VPP/VPN); no emite indicaciones terapéuticas.
 
 > Herramienta de apoyo a la decisión clínica. No sustituye el juicio del médico tratante.
 
