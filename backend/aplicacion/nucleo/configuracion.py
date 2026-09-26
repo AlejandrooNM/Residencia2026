@@ -35,7 +35,12 @@ class Configuracion(BaseSettings):
     ruta_modelo: Path = Path("./modelo_ia/puntos_control")
     ruta_cargas: Path = Path("./cargas/ecg")
 
-    umbral_clasificacion: float = 0.5
+    ruta_checkpoint: Path = Path("./modelo_ia/puntos_control/resnet1d_estandar_100hz/mejor.pt")
+    variante_modelo: str = "estandar"
+
+    # Elegido en validación (fold 9) para sensibilidad >= 0.85; ver scripts/evaluar_modelo.py
+    umbral_clasificacion: float = 0.4787
+    tamano_maximo_carga_mb: int = 20
 
     origenes_permitidos: list[str] = [
         "http://127.0.0.1:8000",

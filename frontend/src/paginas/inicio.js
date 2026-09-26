@@ -12,6 +12,7 @@ import { dibujarEcgConGradCam } from "../componentes/grafico_ecg.js";
 
 const formulario = document.getElementById("formulario-analisis");
 const campoArchivo = document.getElementById("archivo-ecg");
+const campoFrecuencia = document.getElementById("frecuencia-muestreo");
 const zonaCarga = document.getElementById("zona-carga");
 const nombreArchivo = document.getElementById("nombre-archivo");
 const botonAnalizar = document.getElementById("boton-analizar");
@@ -39,13 +40,18 @@ function formatearPorcentaje(valor) {
   return `${(Number(valor) * 100).toFixed(1)}%`;
 }
 
-function actualizarNombreArchivo(archivo) {
-  if (!archivo) {
+function obtenerArchivosSeleccionados() {
+  return Array.from(campoArchivo.files ?? []);
+}
+
+function actualizarNombreArchivo() {
+  const archivos = obtenerArchivosSeleccionados();
+  if (!archivos.length) {
     nombreArchivo.textContent = "Ningún archivo seleccionado";
     botonAnalizar.disabled = true;
     return;
   }
-  nombreArchivo.textContent = archivo.name;
+  nombreArchivo.textContent = archivos.map((archivo) => archivo.name).join(" + ");
   botonAnalizar.disabled = false;
 }
 
@@ -114,7 +120,7 @@ function ocultarGrafico() {
 
 function limpiarFormulario() {
   formulario.reset();
-  actualizarNombreArchivo(null);
+  actualizarNombreArchivo();
   tarjetaResultado.classList.add("oculto");
   valorMensaje.textContent = "";
   rellenoConfianza.style.width = "0%";
@@ -131,7 +137,7 @@ async function comprobarApi() {
   try {
     const activa = await verificarSaludApi();
     if (activa) {
-      estadoConexion.textContent = "API conectada · modo beta";
+      estadoConexion.textContent = "API conectada · modelo ResNet1D listo";
       estadoConexion.className = "estado-conexion ok";
       return;
     }
@@ -143,9 +149,7 @@ async function comprobarApi() {
   }
 }
 
-campoArchivo.addEventListener("change", () => {
-  actualizarNombreArchivo(campoArchivo.files?.[0] ?? null);
-});
+campoArchivo.addEventListener("change", actualizarNombreArchivo);
 
 ["dragenter", "dragover"].forEach((eventoNombre) => {
   zonaCarga.addEventListener(eventoNombre, (evento) => {
@@ -162,12 +166,12 @@ campoArchivo.addEventListener("change", () => {
 });
 
 zonaCarga.addEventListener("drop", (evento) => {
-  const archivo = evento.dataTransfer?.files?.[0];
-  if (!archivo) return;
+  const archivos = Array.from(evento.dataTransfer?.files ?? []);
+  if (!archivos.length) return;
   const transferencia = new DataTransfer();
-  transferencia.items.add(archivo);
+  archivos.forEach((archivo) => transferencia.items.add(archivo));
   campoArchivo.files = transferencia.files;
-  actualizarNombreArchivo(archivo);
+  actualizarNombreArchivo();
 });
 
 botonLimpiar.addEventListener("click", limpiarFormulario);
@@ -207,23 +211,27 @@ botonDemo.addEventListener("click", async () => {
 formulario.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
-  const archivo = campoArchivo.files?.[0];
-  if (!archivo) {
-    actualizarNombreArchivo(null);
+  const archivos = obtenerArchivosSeleccionados();
+  if (!archivos.length) {
+    actualizarNombreArchivo();
     return;
   }
 
   botonAnalizar.disabled = true;
   botonAnalizar.textContent = "Analizando…";
-  estadoConexion.textContent = "Enviando ECG al servidor…";
+  estadoConexion.textContent = "Analizando ECG con la ResNet1D…";
   estadoConexion.className = "estado-conexion";
 
   try {
-    const resultado = await analizarElectrocardiograma(archivo);
+    const resultado = await analizarElectrocardiograma(archivos, campoFrecuencia.value);
     mostrarResultado(resultado);
-    ocultarGrafico();
-    estadoConexion.textContent =
-      "Análisis beta: archivo recibido. Use 'Ver ejemplo PTB-XL' para Grad-CAM.";
+    if (resultado.visualizacion) {
+      mostrarGrafico(resultado.visualizacion);
+      estadoConexion.textContent = "Análisis completado";
+    } else {
+      ocultarGrafico();
+      estadoConexion.textContent = resultado.mensaje ?? "Análisis completado";
+    }
     estadoConexion.className = "estado-conexion ok";
   } catch (error) {
     tarjetaResultado.classList.add("oculto");
@@ -232,7 +240,7 @@ formulario.addEventListener("submit", async (evento) => {
       error instanceof Error ? error.message : "Ocurrió un error inesperado.";
     estadoConexion.className = "estado-conexion error";
   } finally {
-    botonAnalizar.disabled = !campoArchivo.files?.length;
+    botonAnalizar.disabled = !obtenerArchivosSeleccionados().length;
     botonAnalizar.textContent = "Analizar";
   }
 });
@@ -243,5 +251,5 @@ window.addEventListener("resize", () => {
   }
 });
 
-actualizarNombreArchivo(null);
+actualizarNombreArchivo();
 comprobarApi();

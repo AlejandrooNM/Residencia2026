@@ -17,7 +17,7 @@ Para que el clon sea liviano, **no** se suben:
 | `dataset/crudo/` (PTB-XL ~3 GB) | Muy pesado | Descargar de PhysioNet |
 | `dataset/procesado/` (~1 GB) | Generado | Ejecutar script de preprocesamiento |
 | `.venv/` | Entorno local | Crear venv e instalar `requisitos.txt` |
-| `*.pt` / checkpoints | Modelos entrenados | Entrenar con GPU al final |
+| `*.pt` / checkpoints | Modelos entrenados | Pedir `mejor.pt` al equipo y copiarlo a `modelo_ia/puntos_control/resnet1d_estandar_100hz/` (o entrenar con GPU) |
 | `.env` | Secretos | Copiar desde `.env.ejemplo` |
 
 Sí se incluyen: código, scripts, metadatos ligeros, esquema SQL y la web beta.
@@ -64,7 +64,7 @@ python scripts/explorar_dataset_ptbxl.py
 python scripts/preprocesar_dataset_ptbxl.py --frecuencia 100
 ```
 
-## Levantar la web beta
+## Levantar la web
 
 ```powershell
 python scripts/iniciar_api.py
@@ -72,15 +72,35 @@ python scripts/iniciar_api.py
 
 Abrir: http://127.0.0.1:8000  
 
-Usa el botón **Ver ejemplo PTB-XL** (requiere datos ya preprocesados).
+- **Analizar**: sube un ECG de 12 derivaciones y la ResNet1D devuelve la probabilidad
+  de IAM, la etiqueta (según el umbral calibrado) y el mapa Grad-CAM.
+  Formatos: par WFDB `.hea` + `.dat` (seleccionar ambos), `.csv`/`.txt` con 12 columnas o `.npy`.
+  La señal se remuestrea a 100 Hz y se preprocesa igual que en el entrenamiento.
+- Archivos de prueba listos en `dataset/ejemplos/` (`ejemplo_con_iam.*`, `ejemplo_sin_iam.*`,
+  tomados del conjunto de prueba de PTB-XL, licencia CC-BY 4.0).
+- **Ver ejemplo PTB-XL**: ejemplos de validación con Grad-CAM (requiere datos preprocesados).
 
-## Entrenamiento (al final, con GPU)
+Requiere el checkpoint en `modelo_ia/puntos_control/resnet1d_estandar_100hz/mejor.pt`
+(configurable con `RUTA_CHECKPOINT` en `.env`).
+
+## Entrenamiento (con GPU)
 
 ```powershell
 python scripts/entrenar_resnet1d.py --variante estandar --epocas 20
 ```
 
 Requiere CUDA. Solo para pruebas forzadas en CPU: `--permitir-cpu`.
+
+## Evaluación en el conjunto de prueba
+
+```powershell
+python scripts/evaluar_modelo.py
+```
+
+Elige el umbral en validación (fold 9) con la mayor especificidad que alcance
+sensibilidad ≥ 0.85, lo aplica sin reajustar al conjunto de prueba (fold 10) y guarda en
+`documentos/resultados/` las métricas con IC 95 % (bootstrap), la curva ROC, la curva
+precisión-sensibilidad y la matriz de confusión.
 
 ## Estructura del proyecto
 
@@ -108,9 +128,14 @@ Requiere CUDA. Solo para pruebas forzadas en CPU: `--permitir-cpu`.
 
 ## Objetivos de desempeño
 
-- Sensibilidad ≥ 85 %
-- Especificidad ≥ 80 %
-- AUC-ROC > 0.90
+| Métrica | Objetivo | Prueba (fold 10, umbral 0.4787) | IC 95 % |
+|---------|----------|---------------------------------|---------|
+| Sensibilidad | ≥ 0.85 | 0.835 | 0.801 – 0.865 |
+| Especificidad | ≥ 0.80 | 0.853 | 0.835 – 0.871 |
+| AUC-ROC | > 0.90 | 0.920 | 0.906 – 0.932 |
+
+ResNet1D variante `estandar`, 100 Hz, 2 198 ECG de prueba. Detalle en
+`documentos/resultados/metricas_prueba.json`.
 
 ## Autores
 

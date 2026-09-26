@@ -4,6 +4,8 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
+from aplicacion.esquemas.visualizacion import VisualizacionEcg
+
 
 class EtiquetaDiagnostico(str, Enum):
     """Posibles resultados de la clasificación."""
@@ -22,3 +24,6 @@ class ResultadoAnalisis(BaseModel):
     confianza: float = Field(ge=0.0, le=1.0)
     mensaje: str
     mapa_explicabilidad_disponible: bool = False
+    umbral_decision: float | None = None
+    frecuencia_original: float | None = None
+    visualizacion: VisualizacionEcg | None = None

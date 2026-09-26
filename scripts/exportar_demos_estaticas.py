@@ -24,7 +24,7 @@ from modelo_ia.preprocesamiento.pipeline import NOMBRES_DERIVACIONES
 
 RUTA_X = RUTA_RAIZ / "dataset" / "procesado" / "frecuencia_100" / "x_validacion.npy"
 RUTA_Y = RUTA_RAIZ / "dataset" / "procesado" / "frecuencia_100" / "y_validacion.npy"
-RUTA_CKPT = Path(r"E:\Residencia2026\checkpoints\resnet1d_estandar_100hz\mejor.pt")
+RUTA_CKPT = RUTA_RAIZ / "modelo_ia" / "puntos_control" / "resnet1d_estandar_100hz" / "mejor.pt"
 RUTA_SALIDA = RUTA_RAIZ / "frontend" / "public" / "demos"
 
 # Índices de validación a exportar (mezcla IAM / no IAM si es posible)

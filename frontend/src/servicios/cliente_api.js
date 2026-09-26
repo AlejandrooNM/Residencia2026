@@ -32,14 +32,25 @@ export async function verificarSaludApi() {
   }
 }
 
+async function extraerDetalleError(respuesta) {
+  const texto = await respuesta.text();
+  try {
+    const detalle = JSON.parse(texto).detail;
+    return typeof detalle === "string" ? detalle : JSON.stringify(detalle);
+  } catch {
+    return texto;
+  }
+}
+
 /**
- * @param {File} archivo
+ * @param {File[]} archivos Un CSV/TXT/NPY o el par WFDB .hea + .dat
+ * @param {string} frecuenciaMuestreo Hz como texto; vacío = inferir en el servidor
  * @returns {Promise<object>}
  */
-export async function analizarElectrocardiograma(archivo) {
+export async function analizarElectrocardiograma(archivos, frecuenciaMuestreo = "") {
   if (esModoEstatico()) {
     return {
-      nombre_archivo: archivo.name,
+      nombre_archivo: archivos.map((archivo) => archivo.name).join(" + "),
       etiqueta: "pendiente",
       probabilidad_iam: 0,
       confianza: 0,
@@ -51,7 +62,10 @@ export async function analizarElectrocardiograma(archivo) {
   }
 
   const cuerpo = new FormData();
-  cuerpo.append("archivo", archivo);
+  archivos.forEach((archivo) => cuerpo.append("archivos", archivo));
+  if (frecuenciaMuestreo) {
+    cuerpo.append("frecuencia_muestreo", frecuenciaMuestreo);
+  }
 
   const respuesta = await fetch(`${URL_BASE_API}/api/analisis`, {
     method: "POST",
@@ -59,8 +73,8 @@ export async function analizarElectrocardiograma(archivo) {
   });
 
   if (!respuesta.ok) {
-    const detalle = await respuesta.text();
-    throw new Error(`Error en el análisis (${respuesta.status}): ${detalle}`);
+    const detalle = await extraerDetalleError(respuesta);
+    throw new Error(`No se pudo analizar el ECG: ${detalle}`);
   }
 
   return respuesta.json();
@@ -97,7 +111,7 @@ export async function obtenerVisualizacionDemo(indice = 0) {
   );
 
   if (!respuesta.ok) {
-    const detalle = await respuesta.text();
+    const detalle = await extraerDetalleError(respuesta);
     throw new Error(`Error al cargar visualización (${respuesta.status}): ${detalle}`);
   }
 

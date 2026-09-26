@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException, Query
 
 from aplicacion.esquemas.visualizacion import VisualizacionEcg
+from aplicacion.servicios.proveedor_modelo import ModeloNoDisponible
 from aplicacion.servicios.servicio_visualizacion import ServicioVisualizacion
 
 enrutador = APIRouter()
@@ -26,6 +27,8 @@ def obtener_visualizacion_demo(
         raise HTTPException(status_code=404, detail=str(error)) from error
     except IndexError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
+    except ModeloNoDisponible as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
     except Exception as error:  # noqa: BLE001
         raise HTTPException(
             status_code=500,

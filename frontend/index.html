@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CardioIA — Apoyo diagnóstico IAM</title>
+    <title>CardiologIA — Apoyo diagnóstico IAM</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -43,9 +43,9 @@
         <div class="panel-cabecera">
           <h2 id="titulo-carga">Análisis de electrocardiograma</h2>
           <p>
-            Formatos esperados en esta beta: archivos de señal
-            (<strong>.dat</strong>, <strong>.hea</strong>, <strong>.csv</strong> o
-            <strong>.txt</strong>. El modelo clínico se conectará al final del proyecto.
+            Formatos admitidos: registro WFDB (suba juntos el <strong>.hea</strong> y el
+            <strong>.dat</strong>), <strong>.csv</strong>/<strong>.txt</strong> con 12 columnas
+            (una por derivación) o <strong>.npy</strong>.
           </p>
         </div>
 
@@ -59,12 +59,24 @@
               id="archivo-ecg"
               name="archivo"
               type="file"
-              accept=".dat,.hea,.csv,.txt,.npy,.mat,application/octet-stream"
+              accept=".dat,.hea,.csv,.txt,.npy"
+              multiple
               required
             />
             <span class="zona-titulo">Arrastre su ECG aquí</span>
             <span class="zona-detalle">o haga clic para seleccionarlo</span>
             <span id="nombre-archivo" class="nombre-archivo">Ningún archivo seleccionado</span>
+          </label>
+
+          <label class="campo-frecuencia" for="frecuencia-muestreo">
+            <span>Frecuencia de muestreo (solo CSV/TXT/NPY)</span>
+            <select id="frecuencia-muestreo" name="frecuencia_muestreo">
+              <option value="">Automática (señal de 10 s)</option>
+              <option value="100">100 Hz</option>
+              <option value="250">250 Hz</option>
+              <option value="500">500 Hz</option>
+              <option value="1000">1000 Hz</option>
+            </select>
           </label>
 
           <div class="fila-acciones">
