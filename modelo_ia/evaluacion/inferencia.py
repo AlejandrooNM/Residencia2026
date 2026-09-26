@@ -14,7 +14,8 @@ from modelo_ia.arquitectura.resnet_1d import ResNet1D
 
 def seleccionar_dispositivo() -> torch.device:
     """Usa GPU si está disponible; la inferencia también funciona en CPU."""
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    hay_gpu = torch.cuda.is_available() and torch.cuda.device_count() > 0
+    return torch.device("cuda" if hay_gpu else "cpu")
 
 
 def cargar_modelo_entrenado(
@@ -28,7 +29,7 @@ def cargar_modelo_entrenado(
 
     dispositivo = dispositivo or seleccionar_dispositivo()
     modelo = crear_resnet1d_iam(variante=variante)
-    checkpoint = torch.load(ruta_checkpoint, map_location=dispositivo)
+    checkpoint = torch.load(ruta_checkpoint, map_location="cpu")
     modelo.load_state_dict(checkpoint["estado_modelo"])
     modelo.to(dispositivo)
     modelo.eval()

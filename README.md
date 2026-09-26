@@ -79,6 +79,10 @@ Abrir: http://127.0.0.1:8000
 - Archivos de prueba listos en `dataset/ejemplos/` (`ejemplo_con_iam.*`, `ejemplo_sin_iam.*`,
   tomados del conjunto de prueba de PTB-XL, licencia CC-BY 4.0).
 - **Ver ejemplo PTB-XL**: ejemplos de validación con Grad-CAM (requiere datos preprocesados).
+- **Zonas clínicas**: Grad-CAM se relaciona latido a latido con las ventanas de onda Q
+  (necrosis), segmento ST (lesión) y onda T (isquemia).
+- **Historial**: cada análisis se guarda en SQLite (`base_de_datos/sistema_iam.db`) y se
+  consulta en la página o en `GET /api/historial`.
 
 Requiere el checkpoint en `modelo_ia/puntos_control/resnet1d_estandar_100hz/mejor.pt`
 (configurable con `RUTA_CHECKPOINT` en `.env`).
@@ -86,10 +90,12 @@ Requiere el checkpoint en `modelo_ia/puntos_control/resnet1d_estandar_100hz/mejo
 ## Entrenamiento (con GPU)
 
 ```powershell
-python scripts/entrenar_resnet1d.py --variante estandar --epocas 20
+python scripts/entrenar_resnet1d.py --variante estandar --epocas 30 --paciencia 8 --aumento-datos
 ```
 
 Requiere CUDA. Solo para pruebas forzadas en CPU: `--permitir-cpu`.
+`--aumento-datos` aplica variación de amplitud por derivación, ruido, deriva de línea base y
+desplazamiento temporal solo al conjunto de entrenamiento.
 
 ## Evaluación en el conjunto de prueba
 
@@ -128,14 +134,15 @@ precisión-sensibilidad y la matriz de confusión.
 
 ## Objetivos de desempeño
 
-| Métrica | Objetivo | Prueba (fold 10, umbral 0.4787) | IC 95 % |
+| Métrica | Objetivo | Prueba (fold 10, umbral 0.3204) | IC 95 % |
 |---------|----------|---------------------------------|---------|
-| Sensibilidad | ≥ 0.85 | 0.835 | 0.801 – 0.865 |
-| Especificidad | ≥ 0.80 | 0.853 | 0.835 – 0.871 |
-| AUC-ROC | > 0.90 | 0.920 | 0.906 – 0.932 |
+| Sensibilidad | ≥ 0.85 | 0.840 | 0.808 – 0.871 |
+| Especificidad | ≥ 0.80 | 0.843 | 0.825 – 0.861 |
+| AUC-ROC | > 0.90 | 0.925 | 0.913 – 0.937 |
 
-ResNet1D variante `estandar`, 100 Hz, 2 198 ECG de prueba. Detalle en
-`documentos/resultados/metricas_prueba.json`.
+ResNet1D variante `estandar`, 100 Hz, entrenada con aumento de datos; 2 198 ECG de prueba.
+Detalle en `documentos/resultados/metricas_prueba.json` y comparación con otros trabajos en
+`documentos/comparacion_literatura.md`.
 
 ## Autores
 

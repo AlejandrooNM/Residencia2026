@@ -1,0 +1,562 @@
+[
+  {
+    "epoca": 1,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.480129,
+      "exactitud": 0.779022,
+      "sensibilidad": 0.778032,
+      "especificidad": 0.779354,
+      "f1": 0.639032,
+      "auc_roc": 0.860412,
+      "vp": 3407,
+      "vn": 10162,
+      "fp": 2877,
+      "fn": 972
+    },
+    "validacion": {
+      "perdida": 0.395907,
+      "exactitud": 0.834631,
+      "sensibilidad": 0.785185,
+      "especificidad": 0.850883,
+      "f1": 0.701406,
+      "auc_roc": 0.905657,
+      "vp": 424,
+      "vn": 1398,
+      "fp": 245,
+      "fn": 116
+    }
+  },
+  {
+    "epoca": 2,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.416574,
+      "exactitud": 0.814215,
+      "sensibilidad": 0.817082,
+      "especificidad": 0.813253,
+      "f1": 0.688607,
+      "auc_roc": 0.896503,
+      "vp": 3578,
+      "vn": 10604,
+      "fp": 2435,
+      "fn": 801
+    },
+    "validacion": {
+      "perdida": 0.498812,
+      "exactitud": 0.854787,
+      "sensibilidad": 0.731481,
+      "especificidad": 0.895313,
+      "f1": 0.71364,
+      "auc_roc": 0.911285,
+      "vp": 395,
+      "vn": 1471,
+      "fp": 172,
+      "fn": 145
+    }
+  },
+  {
+    "epoca": 3,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.382405,
+      "exactitud": 0.827133,
+      "sensibilidad": 0.834665,
+      "especificidad": 0.824603,
+      "f1": 0.708265,
+      "auc_roc": 0.911861,
+      "vp": 3655,
+      "vn": 10752,
+      "fp": 2287,
+      "fn": 724
+    },
+    "validacion": {
+      "perdida": 0.413797,
+      "exactitud": 0.841044,
+      "sensibilidad": 0.818519,
+      "especificidad": 0.848448,
+      "f1": 0.718115,
+      "auc_roc": 0.916083,
+      "vp": 442,
+      "vn": 1394,
+      "fp": 249,
+      "fn": 98
+    }
+  },
+  {
+    "epoca": 4,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.361838,
+      "exactitud": 0.839476,
+      "sensibilidad": 0.846312,
+      "especificidad": 0.837181,
+      "f1": 0.726097,
+      "auc_roc": 0.92166,
+      "vp": 3706,
+      "vn": 10916,
+      "fp": 2123,
+      "fn": 673
+    },
+    "validacion": {
+      "perdida": 0.381565,
+      "exactitud": 0.818598,
+      "sensibilidad": 0.874074,
+      "especificidad": 0.800365,
+      "f1": 0.704478,
+      "auc_roc": 0.91641,
+      "vp": 472,
+      "vn": 1315,
+      "fp": 328,
+      "fn": 68
+    }
+  },
+  {
+    "epoca": 5,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.346875,
+      "exactitud": 0.844529,
+      "sensibilidad": 0.85499,
+      "especificidad": 0.841015,
+      "f1": 0.734406,
+      "auc_roc": 0.927888,
+      "vp": 3744,
+      "vn": 10966,
+      "fp": 2073,
+      "fn": 635
+    },
+    "validacion": {
+      "perdida": 0.383688,
+      "exactitud": 0.80623,
+      "sensibilidad": 0.885185,
+      "especificidad": 0.78028,
+      "f1": 0.693256,
+      "auc_roc": 0.921413,
+      "vp": 478,
+      "vn": 1282,
+      "fp": 361,
+      "fn": 62
+    }
+  },
+  {
+    "epoca": 6,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.338735,
+      "exactitud": 0.849868,
+      "sensibilidad": 0.848824,
+      "especificidad": 0.850219,
+      "f1": 0.739775,
+      "auc_roc": 0.930303,
+      "vp": 3717,
+      "vn": 11086,
+      "fp": 1953,
+      "fn": 662
+    },
+    "validacion": {
+      "perdida": 0.368913,
+      "exactitud": 0.844251,
+      "sensibilidad": 0.822222,
+      "especificidad": 0.851491,
+      "f1": 0.723127,
+      "auc_roc": 0.925726,
+      "vp": 444,
+      "vn": 1399,
+      "fp": 244,
+      "fn": 96
+    }
+  },
+  {
+    "epoca": 7,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.334648,
+      "exactitud": 0.852796,
+      "sensibilidad": 0.853848,
+      "especificidad": 0.852443,
+      "f1": 0.744672,
+      "auc_roc": 0.932956,
+      "vp": 3739,
+      "vn": 11115,
+      "fp": 1924,
+      "fn": 640
+    },
+    "validacion": {
+      "perdida": 0.46634,
+      "exactitud": 0.861658,
+      "sensibilidad": 0.690741,
+      "especificidad": 0.917833,
+      "f1": 0.711832,
+      "auc_roc": 0.917642,
+      "vp": 373,
+      "vn": 1508,
+      "fp": 135,
+      "fn": 167
+    }
+  },
+  {
+    "epoca": 8,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.326439,
+      "exactitud": 0.859169,
+      "sensibilidad": 0.866179,
+      "especificidad": 0.856814,
+      "f1": 0.755653,
+      "auc_roc": 0.936423,
+      "vp": 3793,
+      "vn": 11172,
+      "fp": 1867,
+      "fn": 586
+    },
+    "validacion": {
+      "perdida": 0.413953,
+      "exactitud": 0.87311,
+      "sensibilidad": 0.766667,
+      "especificidad": 0.908095,
+      "f1": 0.749321,
+      "auc_roc": 0.929241,
+      "vp": 414,
+      "vn": 1492,
+      "fp": 151,
+      "fn": 126
+    }
+  },
+  {
+    "epoca": 9,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.319381,
+      "exactitud": 0.859456,
+      "sensibilidad": 0.860927,
+      "especificidad": 0.858962,
+      "f1": 0.754906,
+      "auc_roc": 0.938498,
+      "vp": 3770,
+      "vn": 11200,
+      "fp": 1839,
+      "fn": 609
+    },
+    "validacion": {
+      "perdida": 0.390808,
+      "exactitud": 0.859368,
+      "sensibilidad": 0.757407,
+      "especificidad": 0.892879,
+      "f1": 0.727111,
+      "auc_roc": 0.923488,
+      "vp": 409,
+      "vn": 1467,
+      "fp": 176,
+      "fn": 131
+    }
+  },
+  {
+    "epoca": 10,
+    "tasa_aprendizaje": 0.001,
+    "entrenamiento": {
+      "perdida": 0.31225,
+      "exactitud": 0.869044,
+      "sensibilidad": 0.86047,
+      "especificidad": 0.871923,
+      "f1": 0.767648,
+      "auc_roc": 0.941276,
+      "vp": 3768,
+      "vn": 11369,
+      "fp": 1670,
+      "fn": 611
+    },
+    "validacion": {
+      "perdida": 0.356441,
+      "exactitud": 0.857077,
+      "sensibilidad": 0.814815,
+      "especificidad": 0.870968,
+      "f1": 0.738255,
+      "auc_roc": 0.925494,
+      "vp": 440,
+      "vn": 1431,
+      "fp": 212,
+      "fn": 100
+    }
+  },
+  {
+    "epoca": 11,
+    "tasa_aprendizaje": 0.0005,
+    "entrenamiento": {
+      "perdida": 0.304155,
+      "exactitud": 0.865254,
+      "sensibilidad": 0.869833,
+      "especificidad": 0.863717,
+      "f1": 0.764476,
+      "auc_roc": 0.944417,
+      "vp": 3809,
+      "vn": 11262,
+      "fp": 1777,
+      "fn": 570
+    },
+    "validacion": {
+      "perdida": 0.373863,
+      "exactitud": 0.844251,
+      "sensibilidad": 0.837037,
+      "especificidad": 0.846622,
+      "f1": 0.726688,
+      "auc_roc": 0.923825,
+      "vp": 452,
+      "vn": 1391,
+      "fp": 252,
+      "fn": 88
+    }
+  },
+  {
+    "epoca": 12,
+    "tasa_aprendizaje": 0.0005,
+    "entrenamiento": {
+      "perdida": 0.2747,
+      "exactitud": 0.880239,
+      "sensibilidad": 0.879425,
+      "especificidad": 0.880512,
+      "f1": 0.786882,
+      "auc_roc": 0.953929,
+      "vp": 3851,
+      "vn": 11481,
+      "fp": 1558,
+      "fn": 528
+    },
+    "validacion": {
+      "perdida": 0.396177,
+      "exactitud": 0.87082,
+      "sensibilidad": 0.777778,
+      "especificidad": 0.9014,
+      "f1": 0.748663,
+      "auc_roc": 0.929326,
+      "vp": 420,
+      "vn": 1481,
+      "fp": 162,
+      "fn": 120
+    }
+  },
+  {
+    "epoca": 13,
+    "tasa_aprendizaje": 0.0005,
+    "entrenamiento": {
+      "perdida": 0.271348,
+      "exactitud": 0.884774,
+      "sensibilidad": 0.882165,
+      "especificidad": 0.885651,
+      "f1": 0.793794,
+      "auc_roc": 0.955944,
+      "vp": 3863,
+      "vn": 11548,
+      "fp": 1491,
+      "fn": 516
+    },
+    "validacion": {
+      "perdida": 0.392895,
+      "exactitud": 0.856161,
+      "sensibilidad": 0.844444,
+      "especificidad": 0.860012,
+      "f1": 0.743883,
+      "auc_roc": 0.926679,
+      "vp": 456,
+      "vn": 1413,
+      "fp": 230,
+      "fn": 84
+    }
+  },
+  {
+    "epoca": 14,
+    "tasa_aprendizaje": 0.00025,
+    "entrenamiento": {
+      "perdida": 0.267792,
+      "exactitud": 0.884315,
+      "sensibilidad": 0.883535,
+      "especificidad": 0.884577,
+      "f1": 0.793397,
+      "auc_roc": 0.95681,
+      "vp": 3869,
+      "vn": 11534,
+      "fp": 1505,
+      "fn": 510
+    },
+    "validacion": {
+      "perdida": 0.401696,
+      "exactitud": 0.862574,
+      "sensibilidad": 0.772222,
+      "especificidad": 0.89227,
+      "f1": 0.73545,
+      "auc_roc": 0.923091,
+      "vp": 417,
+      "vn": 1466,
+      "fp": 177,
+      "fn": 123
+    }
+  },
+  {
+    "epoca": 15,
+    "tasa_aprendizaje": 0.00025,
+    "entrenamiento": {
+      "perdida": 0.247584,
+      "exactitud": 0.892525,
+      "sensibilidad": 0.89267,
+      "especificidad": 0.892476,
+      "f1": 0.806811,
+      "auc_roc": 0.962765,
+      "vp": 3909,
+      "vn": 11637,
+      "fp": 1402,
+      "fn": 470
+    },
+    "validacion": {
+      "perdida": 0.410105,
+      "exactitud": 0.857536,
+      "sensibilidad": 0.814815,
+      "especificidad": 0.871576,
+      "f1": 0.738875,
+      "auc_roc": 0.92702,
+      "vp": 440,
+      "vn": 1432,
+      "fp": 211,
+      "fn": 100
+    }
+  },
+  {
+    "epoca": 16,
+    "tasa_aprendizaje": 0.00025,
+    "entrenamiento": {
+      "perdida": 0.243872,
+      "exactitud": 0.893444,
+      "sensibilidad": 0.891299,
+      "especificidad": 0.894164,
+      "f1": 0.807907,
+      "auc_roc": 0.964051,
+      "vp": 3903,
+      "vn": 11659,
+      "fp": 1380,
+      "fn": 476
+    },
+    "validacion": {
+      "perdida": 0.429548,
+      "exactitud": 0.860284,
+      "sensibilidad": 0.803704,
+      "especificidad": 0.87888,
+      "f1": 0.739983,
+      "auc_roc": 0.928379,
+      "vp": 434,
+      "vn": 1444,
+      "fp": 199,
+      "fn": 106
+    }
+  },
+  {
+    "epoca": 17,
+    "tasa_aprendizaje": 0.000125,
+    "entrenamiento": {
+      "perdida": 0.240632,
+      "exactitud": 0.899816,
+      "sensibilidad": 0.893583,
+      "especificidad": 0.90191,
+      "f1": 0.817678,
+      "auc_roc": 0.965529,
+      "vp": 3913,
+      "vn": 11760,
+      "fp": 1279,
+      "fn": 466
+    },
+    "validacion": {
+      "perdida": 0.501059,
+      "exactitud": 0.876317,
+      "sensibilidad": 0.753704,
+      "especificidad": 0.916616,
+      "f1": 0.750923,
+      "auc_roc": 0.925628,
+      "vp": 407,
+      "vn": 1506,
+      "fp": 137,
+      "fn": 133
+    }
+  },
+  {
+    "epoca": 18,
+    "tasa_aprendizaje": 0.000125,
+    "entrenamiento": {
+      "perdida": 0.22595,
+      "exactitud": 0.904237,
+      "sensibilidad": 0.899749,
+      "especificidad": 0.905744,
+      "f1": 0.825304,
+      "auc_roc": 0.968923,
+      "vp": 3940,
+      "vn": 11810,
+      "fp": 1229,
+      "fn": 439
+    },
+    "validacion": {
+      "perdida": 0.432769,
+      "exactitud": 0.855245,
+      "sensibilidad": 0.807407,
+      "especificidad": 0.870968,
+      "f1": 0.734007,
+      "auc_roc": 0.927887,
+      "vp": 436,
+      "vn": 1431,
+      "fp": 212,
+      "fn": 104
+    }
+  },
+  {
+    "epoca": 19,
+    "tasa_aprendizaje": 0.000125,
+    "entrenamiento": {
+      "perdida": 0.224566,
+      "exactitud": 0.9086,
+      "sensibilidad": 0.903631,
+      "especificidad": 0.910269,
+      "f1": 0.832527,
+      "auc_roc": 0.969661,
+      "vp": 3957,
+      "vn": 11869,
+      "fp": 1170,
+      "fn": 422
+    },
+    "validacion": {
+      "perdida": 0.433252,
+      "exactitud": 0.859368,
+      "sensibilidad": 0.809259,
+      "especificidad": 0.875837,
+      "f1": 0.740051,
+      "auc_roc": 0.928132,
+      "vp": 437,
+      "vn": 1439,
+      "fp": 204,
+      "fn": 103
+    }
+  },
+  {
+    "epoca": 20,
+    "tasa_aprendizaje": 6.25e-05,
+    "entrenamiento": {
+      "perdida": 0.223941,
+      "exactitud": 0.905845,
+      "sensibilidad": 0.904773,
+      "especificidad": 0.906204,
+      "f1": 0.828524,
+      "auc_roc": 0.970262,
+      "vp": 3962,
+      "vn": 11816,
+      "fp": 1223,
+      "fn": 417
+    },
+    "validacion": {
+      "perdida": 0.500826,
+      "exactitud": 0.857994,
+      "sensibilidad": 0.809259,
+      "especificidad": 0.874011,
+      "f1": 0.738176,
+      "auc_roc": 0.926001,
+      "vp": 437,
+      "vn": 1436,
+      "fp": 207,
+      "fn": 103
+    }
+  }
+]

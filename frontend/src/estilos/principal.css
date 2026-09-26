@@ -413,6 +413,44 @@ body {
   background: rgba(4, 12, 16, 0.7);
 }
 
+.reparto-zonas {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+}
+
+.reparto-zonas:empty {
+  display: none;
+}
+
+.fila-zona {
+  display: grid;
+  grid-template-columns: 150px 1fr 48px;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--color-texto-suave);
+  font-size: 0.88rem;
+}
+
+.barra-zona {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.barra-zona span {
+  display: block;
+  height: 100%;
+  background: var(--color-riesgo);
+}
+
+.valor-zona {
+  text-align: right;
+  color: var(--color-texto);
+  font-weight: 600;
+}
+
 .lista-regiones {
   list-style: none;
   margin: 0.9rem 0 0;
@@ -433,6 +471,48 @@ body {
 
 .lista-regiones strong {
   color: var(--color-texto);
+}
+
+.panel-historial {
+  margin-top: 1.5rem;
+}
+
+.panel-historial h3 {
+  margin: 0 0 0.7rem;
+}
+
+.contenedor-tabla {
+  overflow-x: auto;
+  scrollbar-color: var(--color-acento-suave) transparent;
+}
+
+.tabla-historial {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.tabla-historial th,
+.tabla-historial td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--color-borde);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabla-historial th {
+  color: var(--color-texto-suave);
+  font-weight: 600;
+}
+
+.tabla-historial td.iam_detectado {
+  color: var(--color-riesgo);
+  font-weight: 700;
+}
+
+.tabla-historial td.sin_iam {
+  color: var(--color-seguro);
+  font-weight: 700;
 }
 
 .pie {

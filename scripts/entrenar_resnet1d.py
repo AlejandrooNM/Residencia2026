@@ -5,6 +5,7 @@ Uso (desde la raíz del proyecto, con el venv activo):
     python scripts/entrenar_resnet1d.py
     python scripts/entrenar_resnet1d.py --variante ligera --epocas 12
     python scripts/entrenar_resnet1d.py --variante estandar --epocas 20 --lote 16
+    python scripts/entrenar_resnet1d.py --variante estandar --epocas 30 --aumento-datos
 """
 
 from __future__ import annotations
@@ -87,6 +88,11 @@ def parsear_argumentos() -> argparse.Namespace:
         help="Carpeta de datos procesados a usar",
     )
     parser.add_argument(
+        "--aumento-datos",
+        action="store_true",
+        help="Aplica aumento de datos (escala, ruido, deriva, desplazamiento) al entrenamiento",
+    )
+    parser.add_argument(
         "--permitir-cpu",
         action="store_true",
         help="Permite entrenar en CPU (solo pruebas). El entrenamiento final debe usar GPU.",
@@ -130,8 +136,13 @@ def main() -> None:
     print(f"Datos:       {carpeta_procesado}")
     print(f"Checkpoints: {carpeta_checkpoints}")
     print(f"Epocas:      {configuracion.epocas} | lote={configuracion.tamano_lote} | lr={configuracion.tasa_aprendizaje}")
+    print(f"Aumento:     {'si' if args.aumento_datos else 'no'}")
 
-    conjuntos = cargar_conjuntos(carpeta_procesado)
+    conjuntos = cargar_conjuntos(
+        carpeta_procesado,
+        aumentar_entrenamiento=args.aumento_datos,
+        cargar_en_memoria=True,
+    )
     print(
         f"Tamanios: train={len(conjuntos['entrenamiento'])}, "
         f"val={len(conjuntos['validacion'])}, "

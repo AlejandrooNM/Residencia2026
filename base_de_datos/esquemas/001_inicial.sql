@@ -1,5 +1,6 @@
 -- Esquema inicial de la base de datos del sistema de apoyo diagnóstico IAM.
 -- Compatible con SQLite (desarrollo) y adaptable a PostgreSQL.
+-- La API crea esta tabla automáticamente al arrancar (SQLAlchemy create_all).
 
 CREATE TABLE IF NOT EXISTS registros_analisis (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -7,6 +8,9 @@ CREATE TABLE IF NOT EXISTS registros_analisis (
     etiqueta VARCHAR(50) NOT NULL,
     probabilidad_iam REAL NOT NULL CHECK (probabilidad_iam >= 0 AND probabilidad_iam <= 1),
     confianza REAL NOT NULL CHECK (confianza >= 0 AND confianza <= 1),
+    umbral_decision REAL,
+    frecuencia_original REAL,
+    zona_predominante VARCHAR(50),
     mensaje TEXT NOT NULL,
     creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

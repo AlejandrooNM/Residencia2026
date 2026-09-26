@@ -3,11 +3,14 @@ Rutas para el análisis de electrocardiogramas.
 La lógica de negocio permanece en la capa de servicios.
 """
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
 from aplicacion.esquemas.analisis import ResultadoAnalisis
+from aplicacion.nucleo.base_de_datos import obtener_sesion
 from aplicacion.nucleo.configuracion import obtener_configuracion
+from aplicacion.repositorios.repositorio_analisis import RepositorioAnalisis
 from aplicacion.servicios.proveedor_modelo import ModeloNoDisponible
 from aplicacion.servicios.servicio_analisis import ServicioAnalisis
 from aplicacion.utilidades.lectores_ecg import ErrorFormatoEcg
@@ -30,10 +33,11 @@ async def analizar_electrocardiograma(
         gt=0,
         description="Hz del archivo (solo CSV/TXT/NPY; si se omite se asume 10 s de señal)",
     ),
+    sesion: Session = Depends(obtener_sesion),
 ) -> ResultadoAnalisis:
     """
-    Recibe un ECG de 12 derivaciones, ejecuta la ResNet1D y devuelve
-    el resultado diagnóstico, la confianza y el mapa Grad-CAM.
+    Recibe un ECG de 12 derivaciones, ejecuta la ResNet1D, guarda el resultado
+    en el historial y devuelve el diagnóstico, la confianza y el mapa Grad-CAM.
     """
     limite_bytes = obtener_configuracion().tamano_maximo_carga_mb * BYTES_POR_MB
     contenidos: dict[str, bytes] = {}
@@ -46,8 +50,13 @@ async def analizar_electrocardiograma(
         contenidos[archivo.filename or "sin_nombre"] = contenido
 
     try:
-        return await run_in_threadpool(servicio_analisis.analizar, contenidos, frecuencia_muestreo)
+        resultado = await run_in_threadpool(
+            servicio_analisis.analizar, contenidos, frecuencia_muestreo
+        )
     except (ErrorFormatoEcg, ErrorSenalInvalida) as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
     except ModeloNoDisponible as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
+
+    await run_in_threadpool(RepositorioAnalisis(sesion).guardar, resultado)
+    return resultado

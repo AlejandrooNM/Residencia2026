@@ -26,5 +26,9 @@ class VisualizacionEcg(BaseModel):
     mapa_grad_cam: list[float]
     probabilidad_iam: float = Field(ge=0.0, le=1.0)
     regiones: list[RegionVisual]
+    importancia_por_zona: dict[str, float] = Field(
+        default_factory=dict,
+        description="Reparto relativo de Grad-CAM entre necrosis, lesion e isquemia (suma 1)",
+    )
     mensaje: str
     mapa_explicabilidad_disponible: bool = True

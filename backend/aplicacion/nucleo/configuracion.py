@@ -39,7 +39,7 @@ class Configuracion(BaseSettings):
     variante_modelo: str = "estandar"
 
     # Elegido en validación (fold 9) para sensibilidad >= 0.85; ver scripts/evaluar_modelo.py
-    umbral_clasificacion: float = 0.4787
+    umbral_clasificacion: float = 0.3204
     tamano_maximo_carga_mb: int = 20
 
     origenes_permitidos: list[str] = [

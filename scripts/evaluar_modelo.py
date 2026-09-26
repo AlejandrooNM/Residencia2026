@@ -101,7 +101,7 @@ def main() -> None:
     print(f"Checkpoint:  {args.checkpoint}")
 
     modelo = cargar_modelo_entrenado(args.checkpoint, args.variante, dispositivo)
-    conjuntos = cargar_conjuntos(carpeta_procesado)
+    conjuntos = cargar_conjuntos(carpeta_procesado, cargar_en_memoria=True)
 
     etiquetas_val, probabilidades_val = predecir_probabilidades(
         modelo, conjuntos["validacion"], dispositivo
@@ -111,6 +111,7 @@ def main() -> None:
     )
 
     umbral = seleccionar_umbral(etiquetas_val, probabilidades_val, args.sensibilidad_minima)
+    metricas_validacion = evaluar_con_umbral(etiquetas_val, probabilidades_val, umbral.valor)
     metricas_umbral_base = evaluar_con_umbral(etiquetas_prueba, probabilidades_prueba, 0.5)
     metricas_prueba = evaluar_con_umbral(etiquetas_prueba, probabilidades_prueba, umbral.valor)
     intervalos = calcular_intervalos_bootstrap(
@@ -122,6 +123,7 @@ def main() -> None:
     objetivos_cumplidos = verificar_objetivos(metricas_prueba)
 
     print(f"\nUmbral elegido en validacion ({umbral.criterio}): {umbral.valor:.4f}")
+    imprimir_resumen("Validacion", metricas_validacion, umbral.valor)
     imprimir_resumen("Prueba (umbral 0.5)", metricas_umbral_base, 0.5)
     imprimir_resumen("Prueba (umbral ajust.)", metricas_prueba, umbral.valor)
     for nombre, intervalo in intervalos.items():
@@ -152,6 +154,7 @@ def main() -> None:
         "tamanos": {"validacion": int(len(etiquetas_val)), "prueba": int(len(etiquetas_prueba))},
         "prevalencia_iam_prueba": round(float(np.mean(etiquetas_prueba)), 4),
         "umbral": umbral.a_diccionario(),
+        "validacion_umbral_ajustado": metricas_validacion.a_diccionario(),
         "prueba_umbral_0_5": metricas_umbral_base.a_diccionario(),
         "prueba_umbral_ajustado": {
             **metricas_prueba.a_diccionario(),

@@ -5,6 +5,7 @@
 import {
   analizarElectrocardiograma,
   esModoEstatico,
+  obtenerHistorial,
   obtenerVisualizacionDemo,
   verificarSaludApi,
 } from "../servicios/cliente_api.js";
@@ -24,6 +25,16 @@ const panelGrafico = document.getElementById("panel-grafico");
 const lienzoEcg = document.getElementById("lienzo-ecg");
 const detalleGrafico = document.getElementById("detalle-grafico");
 const listaRegiones = document.getElementById("lista-regiones");
+const repartoZonas = document.getElementById("reparto-zonas");
+const panelHistorial = document.getElementById("panel-historial");
+const cuerpoHistorial = document.getElementById("cuerpo-historial");
+
+const NOMBRES_ZONA = {
+  necrosis: "Necrosis (onda Q)",
+  lesion: "Lesión (segmento ST)",
+  isquemia: "Isquemia (onda T)",
+  indeterminada: "Indeterminada",
+};
 
 const valorArchivo = document.getElementById("valor-archivo");
 const valorProbabilidad = document.getElementById("valor-probabilidad");
@@ -91,6 +102,7 @@ function mostrarGrafico(visualizacion) {
   ].join(" · ");
 
   dibujarEcgConGradCam(lienzoEcg, visualizacion);
+  mostrarRepartoZonas(visualizacion.importancia_por_zona ?? {});
 
   listaRegiones.innerHTML = "";
   const regiones = visualizacion.regiones ?? [];
@@ -104,18 +116,67 @@ function mostrarGrafico(visualizacion) {
   regiones.forEach((region) => {
     const item = document.createElement("li");
     item.innerHTML =
-      `<strong>${region.zona_sugerida}</strong> ` +
+      `<strong>${NOMBRES_ZONA[region.zona_sugerida] ?? region.zona_sugerida}</strong> ` +
       `[${region.inicio}:${region.fin}] · ${formatearPorcentaje(region.importancia_media)} — ` +
       `${region.descripcion}`;
     listaRegiones.appendChild(item);
   });
 }
 
+function mostrarRepartoZonas(importanciaPorZona) {
+  repartoZonas.innerHTML = "";
+  const zonas = Object.entries(importanciaPorZona);
+  if (!zonas.some(([, valor]) => valor > 0)) return;
+
+  zonas.forEach(([zona, valor]) => {
+    const fila = document.createElement("div");
+    fila.className = "fila-zona";
+    fila.innerHTML =
+      `<span>${NOMBRES_ZONA[zona] ?? zona}</span>` +
+      `<span class="barra-zona"><span style="width:${(valor * 100).toFixed(1)}%"></span></span>` +
+      `<span class="valor-zona">${formatearPorcentaje(valor)}</span>`;
+    repartoZonas.appendChild(fila);
+  });
+}
+
 function ocultarGrafico() {
   ultimaVisualizacion = null;
   panelGrafico.classList.add("oculto");
+  repartoZonas.innerHTML = "";
   listaRegiones.innerHTML = "";
   detalleGrafico.textContent = "";
+}
+
+function crearCelda(texto, clase = "") {
+  const celda = document.createElement("td");
+  celda.textContent = texto;
+  if (clase) celda.className = clase;
+  return celda;
+}
+
+async function cargarHistorial() {
+  try {
+    const registros = await obtenerHistorial(10);
+    cuerpoHistorial.innerHTML = "";
+    if (!registros.length) {
+      panelHistorial.classList.add("oculto");
+      return;
+    }
+    registros.forEach((registro) => {
+      const fila = document.createElement("tr");
+      fila.append(
+        crearCelda(new Date(registro.creado_en).toLocaleString("es-MX")),
+        crearCelda(registro.nombre_archivo),
+        crearCelda(registro.etiqueta.replaceAll("_", " "), registro.etiqueta),
+        crearCelda(formatearPorcentaje(registro.probabilidad_iam)),
+        crearCelda(NOMBRES_ZONA[registro.zona_predominante] ?? "—"),
+      );
+      cuerpoHistorial.appendChild(fila);
+    });
+    panelHistorial.classList.remove("oculto");
+  } catch {
+    panelHistorial.classList.add("oculto");
+  }
 }
 
 function limpiarFormulario() {
@@ -139,6 +200,7 @@ async function comprobarApi() {
     if (activa) {
       estadoConexion.textContent = "API conectada · modelo ResNet1D listo";
       estadoConexion.className = "estado-conexion ok";
+      cargarHistorial();
       return;
     }
     throw new Error("Sin respuesta");
@@ -233,6 +295,7 @@ formulario.addEventListener("submit", async (evento) => {
       estadoConexion.textContent = resultado.mensaje ?? "Análisis completado";
     }
     estadoConexion.className = "estado-conexion ok";
+    cargarHistorial();
   } catch (error) {
     tarjetaResultado.classList.add("oculto");
     ocultarGrafico();

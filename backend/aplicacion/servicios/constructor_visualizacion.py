@@ -7,7 +7,11 @@ import torch
 
 from aplicacion.esquemas.visualizacion import RegionVisual, VisualizacionEcg
 from aplicacion.servicios.proveedor_modelo import ProveedorModelo
-from modelo_ia.explicabilidad import ExplicadorGradCam1D, extraer_regiones_relevantes
+from modelo_ia.explicabilidad import (
+    ExplicadorGradCam1D,
+    calcular_importancia_por_zona,
+    extraer_regiones_relevantes,
+)
 from modelo_ia.preprocesamiento import FRECUENCIA_MODELO
 from modelo_ia.preprocesamiento.pipeline import NOMBRES_DERIVACIONES
 
@@ -42,6 +46,11 @@ def construir_visualizacion(
         senal_para_picos=senal[INDICE_DERIVACION_II],
         frecuencia_muestreo=float(FRECUENCIA_MODELO),
     )
+    importancia_por_zona = calcular_importancia_por_zona(
+        mapa_temporal=resultado.mapa_temporal,
+        senal_para_picos=senal[INDICE_DERIVACION_II],
+        frecuencia_muestreo=float(FRECUENCIA_MODELO),
+    )
 
     numero_derivaciones = min(max_derivaciones, senal.shape[0], len(NOMBRES_DERIVACIONES))
     senal_web = senal[:numero_derivaciones, ::PASO_SUBMUESTREO_WEB]
@@ -67,6 +76,7 @@ def construir_visualizacion(
             )
             for region in regiones[:MAXIMO_REGIONES]
         ],
+        importancia_por_zona={zona: round(valor, 4) for zona, valor in importancia_por_zona.items()},
         mensaje=mensaje,
         mapa_explicabilidad_disponible=True,
     )

@@ -16,6 +16,7 @@ from aplicacion.utilidades.lectores_ecg import leer_archivos_ecg
 from modelo_ia.preprocesamiento import preparar_senal_para_modelo
 
 AVISO_CLINICO = "Resultado de apoyo; debe confirmarlo un médico."
+NOMBRES_ZONA = {"necrosis": "necrosis (onda Q)", "lesion": "lesión (ST)", "isquemia": "isquemia (onda T)"}
 
 
 class ServicioAnalisis:
@@ -82,6 +83,6 @@ class ServicioAnalisis:
     def _redactar_mensaje(es_iam: bool, regiones: list[RegionVisual]) -> str:
         if not es_iam:
             return f"El modelo no encontró patrones compatibles con IAM. {AVISO_CLINICO}"
-        zonas = sorted({r.zona_sugerida for r in regiones if r.zona_sugerida != "indeterminada"})
+        zonas = sorted({NOMBRES_ZONA[r.zona_sugerida] for r in regiones if r.zona_sugerida in NOMBRES_ZONA})
         detalle = f" Zonas resaltadas por Grad-CAM: {', '.join(zonas)}." if zonas else ""
         return f"Patrones compatibles con IAM.{detalle} {AVISO_CLINICO}"

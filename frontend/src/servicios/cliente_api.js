@@ -81,6 +81,21 @@ export async function analizarElectrocardiograma(archivos, frecuenciaMuestreo = 
 }
 
 /**
+ * @param {number} limite
+ * @returns {Promise<object[]>} Análisis guardados, del más reciente al más antiguo
+ */
+export async function obtenerHistorial(limite = 10) {
+  if (esModoEstatico()) {
+    return [];
+  }
+  const respuesta = await fetch(`${URL_BASE_API}/api/historial?limite=${limite}`);
+  if (!respuesta.ok) {
+    throw new Error(`No se pudo cargar el historial: ${await extraerDetalleError(respuesta)}`);
+  }
+  return respuesta.json();
+}
+
+/**
  * @param {number} indice
  * @returns {Promise<object>}
  */

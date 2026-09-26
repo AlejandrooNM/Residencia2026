@@ -1,6 +1,6 @@
 {
-  "fecha": "2026-09-26T14:44:06",
-  "checkpoint": "E:\\Residencia2026\\checkpoints\\resnet1d_estandar_100hz\\mejor.pt",
+  "fecha": "2026-09-26T15:18:50",
+  "checkpoint": "E:\\Residencia2026\\Proyecto\\modelo_ia\\puntos_control\\resnet1d_estandar_100hz\\mejor.pt",
   "variante": "estandar",
   "frecuencia_muestreo": 100,
   "tamanos": {
@@ -9,48 +9,60 @@
   },
   "prevalencia_iam_prueba": 0.2502,
   "umbral": {
-    "valor": 0.478688,
+    "valor": 0.320411,
     "criterio": "sensibilidad_minima",
-    "sensibilidad_validacion": 0.85,
-    "especificidad_validacion": 0.840536
+    "sensibilidad_validacion": 0.851852,
+    "especificidad_validacion": 0.846013
+  },
+  "validacion_umbral_ajustado": {
+    "perdida": 0.307092,
+    "exactitud": 0.847458,
+    "sensibilidad": 0.851852,
+    "especificidad": 0.846013,
+    "f1": 0.734238,
+    "auc_roc": 0.929326,
+    "vp": 460,
+    "vn": 1390,
+    "fp": 253,
+    "fn": 80
   },
   "prueba_umbral_0_5": {
-    "perdida": 0.349728,
-    "exactitud": 0.853503,
-    "sensibilidad": 0.830909,
-    "especificidad": 0.861044,
-    "f1": 0.739482,
-    "auc_roc": 0.919509,
-    "vp": 457,
-    "vn": 1419,
-    "fp": 229,
-    "fn": 93
+    "perdida": 0.320498,
+    "exactitud": 0.867152,
+    "sensibilidad": 0.769091,
+    "especificidad": 0.899879,
+    "f1": 0.743409,
+    "auc_roc": 0.925009,
+    "vp": 423,
+    "vn": 1483,
+    "fp": 165,
+    "fn": 127
   },
   "prueba_umbral_ajustado": {
-    "perdida": 0.349728,
-    "exactitud": 0.848499,
-    "sensibilidad": 0.834545,
-    "especificidad": 0.853155,
-    "f1": 0.733813,
-    "auc_roc": 0.919509,
-    "vp": 459,
-    "vn": 1406,
-    "fp": 242,
-    "fn": 91,
-    "precision_media": 0.818482
+    "perdida": 0.320498,
+    "exactitud": 0.842129,
+    "sensibilidad": 0.84,
+    "especificidad": 0.84284,
+    "f1": 0.726987,
+    "auc_roc": 0.925009,
+    "vp": 462,
+    "vn": 1389,
+    "fp": 259,
+    "fn": 88,
+    "precision_media": 0.824597
   },
   "intervalos_confianza_95": {
     "sensibilidad": [
-      0.8007,
-      0.8649
+      0.8079,
+      0.871
     ],
     "especificidad": [
-      0.8353,
-      0.8709
+      0.8249,
+      0.8613
     ],
     "auc_roc": [
-      0.9063,
-      0.9315
+      0.9126,
+      0.9366
     ]
   },
   "objetivos_anteproyecto": {

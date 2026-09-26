@@ -131,7 +131,26 @@
             <p id="detalle-grafico" class="detalle-grafico"></p>
           </div>
           <canvas id="lienzo-ecg" class="lienzo-ecg" width="900" height="480"></canvas>
+          <div id="reparto-zonas" class="reparto-zonas" aria-label="Reparto de importancia por zona clínica"></div>
           <ul id="lista-regiones" class="lista-regiones"></ul>
+        </section>
+
+        <section id="panel-historial" class="panel-historial oculto" aria-labelledby="titulo-historial">
+          <h3 id="titulo-historial">Historial reciente</h3>
+          <div class="contenedor-tabla">
+            <table class="tabla-historial">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Archivo</th>
+                  <th>Resultado</th>
+                  <th>P(IAM)</th>
+                  <th>Zona predominante</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-historial"></tbody>
+            </table>
+          </div>
         </section>
       </section>
     </main>
