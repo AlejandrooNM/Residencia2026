@@ -17,22 +17,23 @@ se aplica sin reajustar a los de prueba (fold 10).
 Uso (desde la raíz del proyecto, con el venv activo):
     python scripts/evaluar_digitalizacion.py --conjunto validacion
     python scripts/evaluar_digitalizacion.py --conjunto prueba
+    python scripts/evaluar_digitalizacion.py --conjunto prueba --reutilizar-digitalizacion \
+        --checkpoint <otro modelo>/mejor.pt --carpeta-salida <carpeta con su metricas_prueba_impreso.json>
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import pickle
 import sys
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
-import cv2
 import numpy as np
 import pandas as pd
 import torch
-import wfdb
 from scipy.signal import resample_poly
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
@@ -42,17 +43,19 @@ if str(RUTA_RAIZ) not in sys.path:
     sys.path.insert(0, str(RUTA_RAIZ))
 
 from modelo_ia.digitalizacion.carga_imagen import ErrorImagenEcg  # noqa: E402
-from modelo_ia.digitalizacion.degradaciones import degradar_como_escaneo, degradar_como_foto  # noqa: E402
 from modelo_ia.digitalizacion.digitalizador import digitalizar_documento  # noqa: E402
+from modelo_ia.digitalizacion.documentos_sinteticos import (  # noqa: E402
+    FRECUENCIA_ORIGINAL,
+    VARIANTES,
+    generar_documento,
+    leer_registro_500hz,
+)
 from modelo_ia.digitalizacion.formato_impreso import (  # noqa: E402
     MUESTRAS_IMPRESO,
-    TIRAS_RITMO_PREDETERMINADAS,
-    TIRAS_RITMO_TRIPLES,
     mascara_formato_impreso,
     ocultar_no_impreso,
     preparar_senal_impresa,
 )
-from modelo_ia.digitalizacion.renderizado import disenar_pagina_aleatoria, renderizar_ecg_impreso  # noqa: E402
 from modelo_ia.entrenamiento.metricas import calcular_metricas_clinicas  # noqa: E402
 from modelo_ia.evaluacion import (  # noqa: E402
     calcular_intervalos_bootstrap,
@@ -71,14 +74,11 @@ RUTA_CHECKPOINT_IMPRESO = (
     RUTA_RAIZ / "modelo_ia" / "puntos_control" / "resnet1d_estandar_impreso_100hz" / "mejor.pt"
 )
 CARPETA_RESULTADOS = RUTA_RAIZ / "documentos" / "resultados"
-RUTA_METRICAS_IMPRESO = CARPETA_RESULTADOS / "metricas_prueba_impreso.json"
+NOMBRE_METRICAS_IMPRESO = "metricas_prueba_impreso.json"
+NOMBRE_CACHE = "cache_digitalizacion_{conjunto}_{registros}_{semilla}.pkl"
 NOMBRE_REPORTE = "digitalizacion_extremo_a_extremo{sufijo}.json"
 SUFIJOS_CONJUNTO = {"prueba": "", "validacion": "_validacion"}
 SENSIBILIDAD_MINIMA = 0.85
-
-VARIANTES = ("pdf_equipo", "imagen_limpia", "escaneo", "foto")
-RESOLUCIONES_DPI = (150, 200, 300)
-FRECUENCIA_ORIGINAL = 500
 CORRELACION_BUENA = 0.9
 
 
@@ -94,38 +94,18 @@ def parsear_argumentos() -> argparse.Namespace:
     parser.add_argument("--trabajadores", type=int, default=4)
     parser.add_argument("--semilla", type=int, default=2026)
     parser.add_argument("--checkpoint", type=Path, default=RUTA_CHECKPOINT_IMPRESO)
-    parser.add_argument("--carpeta-salida", type=Path, default=CARPETA_RESULTADOS)
+    parser.add_argument(
+        "--carpeta-salida",
+        type=Path,
+        default=CARPETA_RESULTADOS,
+        help=f"Donde se guardan los reportes; debe contener el {NOMBRE_METRICAS_IMPRESO} del checkpoint",
+    )
+    parser.add_argument(
+        "--reutilizar-digitalizacion",
+        action="store_true",
+        help="Usa los documentos ya digitalizados con la misma muestra (para comparar modelos)",
+    )
     return parser.parse_args()
-
-
-def elegir_tiras_ritmo(generador: np.random.Generator) -> tuple[int, ...]:
-    sorteo = generador.random()
-    if sorteo < 0.15:
-        return ()
-    if sorteo < 0.25:
-        return TIRAS_RITMO_TRIPLES
-    return TIRAS_RITMO_PREDETERMINADAS
-
-
-def generar_documento(
-    senal_mv: np.ndarray, variante: str, generador: np.random.Generator
-) -> tuple[bytes, str, tuple[int, ...]]:
-    """Imprime la señal en la variante pedida; devuelve (contenido, nombre, tiras de ritmo)."""
-    diseno = disenar_pagina_aleatoria(generador)
-    tiras = elegir_tiras_ritmo(generador)
-    if variante == "pdf_equipo":
-        pdf = renderizar_ecg_impreso(senal_mv, FRECUENCIA_ORIGINAL, tiras, diseno, formato="pdf")
-        return pdf, "ecg.pdf", tiras
-
-    dpi = int(generador.choice(RESOLUCIONES_DPI))
-    png = renderizar_ecg_impreso(senal_mv, FRECUENCIA_ORIGINAL, tiras, diseno, formato="png", dpi=dpi)
-    if variante == "imagen_limpia":
-        return png, "ecg.png", tiras
-
-    imagen = cv2.cvtColor(cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-    degradar = degradar_como_escaneo if variante == "escaneo" else degradar_como_foto
-    degradada = cv2.cvtColor(degradar(imagen, generador), cv2.COLOR_RGB2BGR)
-    return cv2.imencode(".png", degradada)[1].tobytes(), "ecg.png", tiras
 
 
 def correlaciones_por_derivacion(digitalizada: np.ndarray, referencia: np.ndarray) -> list[float | None]:
@@ -142,10 +122,10 @@ def correlaciones_por_derivacion(digitalizada: np.ndarray, referencia: np.ndarra
     return resultado
 
 
-def procesar_registro(tarea: tuple[int, str, int]) -> dict:
+def procesar_registro(tarea: tuple[int, int]) -> dict:
     """Imprime, digitaliza y prepara un registro en cada variante (se ejecuta en un proceso aparte)."""
-    ecg_id, archivo, semilla = tarea
-    senal_mv, _ = wfdb.rdsamp(str(CARPETA_PTBXL / archivo))
+    ecg_id, semilla = tarea
+    senal_mv = leer_registro_500hz(CARPETA_PTBXL, ecg_id)
     referencia = resample_poly(senal_mv, 1, FRECUENCIA_ORIGINAL // 100, axis=0)[:MUESTRAS_IMPRESO]
 
     variantes: dict[str, dict] = {}
@@ -224,16 +204,23 @@ def digitalizar_muestra(args: argparse.Namespace) -> tuple[list[dict], dict[int,
     metadatos = pd.read_csv(CARPETA_PROCESADO / f"metadatos_{args.conjunto}.csv")
     muestra = metadatos.sample(n=min(args.registros, len(metadatos)), random_state=args.semilla)
     etiquetas_por_id = dict(zip(muestra["ecg_id"].astype(int), muestra["es_iam"].astype(int)))
-    tareas = [
-        (int(ecg_id), f"records500/{int(ecg_id) // 1000 * 1000:05d}/{int(ecg_id):05d}_hr", args.semilla)
-        for ecg_id in muestra["ecg_id"]
-    ]
+    ruta_cache = CARPETA_PROCESADO / NOMBRE_CACHE.format(
+        conjunto=args.conjunto, registros=len(muestra), semilla=args.semilla
+    )
+    if args.reutilizar_digitalizacion and ruta_cache.exists():
+        print(f"Reutilizando documentos digitalizados de {ruta_cache.name}")
+        with ruta_cache.open("rb") as archivo:
+            return pickle.load(archivo), etiquetas_por_id
+
+    tareas = [(int(ecg_id), args.semilla) for ecg_id in muestra["ecg_id"]]
     print(
         f"Conjunto de {args.conjunto}: imprimiendo y digitalizando "
         f"{len(tareas)} registros x {len(VARIANTES)} variantes..."
     )
     with ProcessPoolExecutor(max_workers=args.trabajadores) as ejecutor:
         resultados = list(tqdm(ejecutor.map(procesar_registro, tareas, chunksize=4), total=len(tareas)))
+    with ruta_cache.open("wb") as archivo:
+        pickle.dump(resultados, archivo, protocol=pickle.HIGHEST_PROTOCOL)
     return resultados, etiquetas_por_id
 
 
@@ -312,7 +299,8 @@ def main() -> None:
 
     dispositivo = seleccionar_dispositivo()
     modelo = cargar_modelo_entrenado(args.checkpoint, "estandar", dispositivo)
-    umbral_modelo = json.loads(RUTA_METRICAS_IMPRESO.read_text(encoding="utf-8"))["umbral"]["valor"]
+    ruta_metricas = args.carpeta_salida / NOMBRE_METRICAS_IMPRESO
+    umbral_modelo = json.loads(ruta_metricas.read_text(encoding="utf-8"))["umbral"]["valor"]
     probabilidades = calcular_probabilidades(resultados, etiquetas_por_id, modelo, dispositivo)
     umbral_documentos = obtener_umbral_documentos(args, probabilidades)
 

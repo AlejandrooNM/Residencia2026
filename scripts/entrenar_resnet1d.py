@@ -8,6 +8,9 @@ Uso (desde la raíz del proyecto, con el venv activo):
     python scripts/entrenar_resnet1d.py --variante estandar --epocas 30 --aumento-datos
     python scripts/entrenar_resnet1d.py --variante estandar --formato-impreso --aumento-datos \
         --pesos-iniciales modelo_ia/puntos_control/resnet1d_estandar_100hz/mejor.pt --lr 3e-4
+    python scripts/entrenar_resnet1d.py --variante estandar --formato-impreso --aumento-datos \
+        --digitalizados 0.7 --lr 1e-4 \
+        --pesos-iniciales modelo_ia/puntos_control/resnet1d_estandar_impreso_100hz/mejor.pt
 """
 
 from __future__ import annotations
@@ -32,6 +35,7 @@ from modelo_ia.entrenamiento import (  # noqa: E402
     EntrenadorResNet1D,
     cargar_conjuntos,
 )
+from modelo_ia.entrenamiento.conjunto_datos import ConjuntoConDigitalizados  # noqa: E402
 
 
 def fijar_semilla(semilla: int) -> None:
@@ -100,6 +104,16 @@ def parsear_argumentos() -> argparse.Namespace:
         help="Entrena con la vista de un ECG impreso 3x4 digitalizado (2.5 s por derivacion)",
     )
     parser.add_argument(
+        "--digitalizados",
+        type=float,
+        default=0.0,
+        metavar="PROBABILIDAD",
+        help=(
+            "Con --formato-impreso, probabilidad de usar la versión digitalizada de un documento "
+            "sintético (requiere scripts/generar_digitalizados.py)"
+        ),
+    )
+    parser.add_argument(
         "--pesos-iniciales",
         type=Path,
         default=None,
@@ -135,6 +149,8 @@ def main() -> None:
         carpeta_checkpoints = args.carpeta_salida
     else:
         sufijo_formato = "_impreso" if args.formato_impreso else ""
+        if args.formato_impreso and args.digitalizados > 0:
+            sufijo_formato += "_digitalizado"
         carpeta_checkpoints = (
             RUTA_RAIZ
             / "modelo_ia"
@@ -152,13 +168,22 @@ def main() -> None:
     print(f"Epocas:      {configuracion.epocas} | lote={configuracion.tamano_lote} | lr={configuracion.tasa_aprendizaje}")
     print(f"Aumento:     {'si' if args.aumento_datos else 'no'}")
     print(f"Formato:     {'impreso 3x4' if args.formato_impreso else 'digital 10 s'}")
+    if args.formato_impreso and args.digitalizados > 0:
+        print(f"Digitalizados: probabilidad {args.digitalizados} en entrenamiento, 1.0 en validacion")
 
     conjuntos = cargar_conjuntos(
         carpeta_procesado,
         aumentar_entrenamiento=args.aumento_datos,
         cargar_en_memoria=True,
         formato_impreso=args.formato_impreso,
+        probabilidad_digitalizado=args.digitalizados,
     )
+    for nombre, conjunto in conjuntos.items():
+        if isinstance(conjunto, ConjuntoConDigitalizados):
+            print(
+                f"Digitalizados {nombre}: {len(conjunto.posicion_por_indice)} utiles, "
+                f"{conjunto.descartados} descartados por no parecerse a su senal original"
+            )
     print(
         f"Tamanios: train={len(conjuntos['entrenamiento'])}, "
         f"val={len(conjuntos['validacion'])}, "

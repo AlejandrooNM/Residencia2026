@@ -62,15 +62,40 @@ def detectar_filas(trazo: np.ndarray, escala: Escala) -> list[Fila]:
     longitud_minima = LONGITUD_MINIMA_FILA_MM * escala.pixeles_por_mm_x
 
     filas: list[Fila] = []
-    for pico in picos:
+    for numero, pico in enumerate(picos):
         superior, inferior = max(0, pico - media_banda), min(trazo.shape[0], pico + media_banda + 1)
         columnas_con_tinta = trazo[superior:inferior].any(axis=0)
         inicio, fin = _tramo_continuo_mas_largo(columnas_con_tinta, hueco_maximo)
         if fin - inicio >= longitud_minima:
             desde = max(0, pico - media_banda_base)
             linea_base = desde + float(np.argmax(perfil[desde:pico + media_banda_base + 1]))
+            superior_amplio, inferior_amplio = _banda_hasta_vecinas(picos, numero, media_banda, trazo.shape[0])
+            fin = _extender_fin(trazo[superior_amplio:inferior_amplio].any(axis=0), fin, hueco_maximo)
             filas.append(Fila(linea_base=linea_base, inicio_x=inicio, fin_x=fin))
     return filas
+
+
+def _banda_hasta_vecinas(picos: np.ndarray, numero: int, media_banda: int, alto: int) -> tuple[int, int]:
+    """Franja [superior, inferior) de la fila que llega hasta la mitad de las filas vecinas."""
+    pico = int(picos[numero])
+    superior = (pico + int(picos[numero - 1])) // 2 + 1 if numero > 0 else pico - 2 * media_banda
+    inferior = (pico + int(picos[numero + 1])) // 2 if numero < len(picos) - 1 else pico + 2 * media_banda + 1
+    return max(0, min(superior, pico - media_banda)), min(alto, max(inferior, pico + media_banda + 1))
+
+
+def _extender_fin(columnas_con_tinta: np.ndarray, fin: int, hueco_maximo: int) -> int:
+    """
+    Prolonga el tramo hacia la derecha mientras el trazo continúe.
+
+    La banda estrecha pierde el final si el registro termina con la señal lejos de
+    la línea base (onda alta o derivación saturada), y ese final fija el origen de
+    tiempo de todas las filas.
+    """
+    while True:
+        siguientes = np.flatnonzero(columnas_con_tinta[fin + 1:fin + 2 + hueco_maximo])
+        if siguientes.size == 0:
+            return fin
+        fin += 1 + int(siguientes[-1])
 
 
 def estimar_grosor_trazo(trazo: np.ndarray) -> float:

@@ -101,7 +101,8 @@ Abrir: http://127.0.0.1:8000
 
 Requiere el checkpoint en `modelo_ia/puntos_control/resnet1d_estandar_100hz/mejor.pt`
 (configurable con `RUTA_CHECKPOINT` en `.env`) y, para ECG impresos,
-`modelo_ia/puntos_control/resnet1d_estandar_impreso_100hz/mejor.pt` (`RUTA_CHECKPOINT_IMPRESO`).
+`modelo_ia/puntos_control/resnet1d_estandar_impreso_digitalizado_100hz/mejor.pt`
+(`RUTA_CHECKPOINT_IMPRESO`).
 
 ## Entrenamiento (con GPU)
 
@@ -124,6 +125,24 @@ python scripts/entrenar_resnet1d.py --variante estandar --aumento-datos --format
 `--formato-impreso` muestra a la red solo lo que aparece en papel: cada derivación en su
 columna de 2.5 s y la tira de ritmo (II en la mayoría de los casos, ninguna o II/V1/V5 al azar),
 con recorte de bordes y error de trazo simulados.
+
+Después se ajusta con documentos que pasaron de verdad por el digitalizador, para que aprenda
+sus defectos (picos suavizados, ruido de píxel, pequeños desfases) y no los confunda con
+signos de IAM. Es el modelo que usa la aplicación:
+
+```powershell
+python scripts/generar_digitalizados.py --conjunto validacion --registros 1000
+python scripts/generar_digitalizados.py --conjunto entrenamiento --registros 6000
+python scripts/entrenar_resnet1d.py --variante estandar --formato-impreso --aumento-datos `
+  --digitalizados 0.7 --lr 1e-4 --epocas 20 --paciencia 6 `
+  --pesos-iniciales modelo_ia/puntos_control/resnet1d_estandar_impreso_100hz/mejor.pt
+```
+
+`generar_digitalizados.py` imprime cada registro como PDF, imagen, escaneo o foto sintéticos
+(al azar, con más escaneos y fotos), lo digitaliza y guarda la entrada del modelo en
+`dataset/procesado/frecuencia_100/digitalizados_<conjunto>.npz` (unas 2 h de CPU para 6000).
+Con `--digitalizados 0.7` el entrenamiento usa esa versión el 70 % de las veces y la validación
+siempre que exista; se descartan las digitalizaciones que no se parecen a su señal original.
 
 ## Evaluación en el conjunto de prueba
 
@@ -165,24 +184,33 @@ python scripts/evaluar_digitalizacion.py --conjunto validacion   # elige el punt
 python scripts/evaluar_digitalizacion.py --conjunto prueba       # lo aplica sin reajustar
 ```
 
-Resultados en 500 ECG de prueba (fold 10) por formato, punto de corte 0.4303 elegido con
-documentos digitalizados de validación (sensibilidad ≥ 0.85):
+Para comparar otro modelo con los mismos documentos sin volver a digitalizarlos:
+`--reutilizar-digitalizacion --checkpoint <modelo> --carpeta-salida <carpeta con su metricas_prueba_impreso.json>`.
+
+Resultados en 500 ECG de prueba (fold 10) por formato con el modelo ajustado a documentos
+digitalizados, punto de corte 0.3623 elegido con documentos digitalizados de validación
+(sensibilidad ≥ 0.85):
 
 | Formato | Digitalizados | Correlación mediana | Sensibilidad | Especificidad | AUC (señal original) |
 |---------|---------------|---------------------|--------------|---------------|----------------------|
-| PDF del equipo | 99.6 % | 0.989 | 0.939 | 0.789 | 0.944 (0.948) |
-| Imagen limpia | 99.6 % | 0.984 | 0.930 | 0.784 | 0.949 (0.948) |
-| Escaneo | 99.8 % | 0.976 | 0.921 | 0.771 | 0.937 (0.946) |
-| Foto con celular | 97.8 % | 0.957 | 0.946 | 0.726 | 0.927 (0.945) |
+| PDF del equipo | 99.8 % | 0.989 | 0.921 | 0.805 | 0.941 (0.944) |
+| Imagen limpia | 99.8 % | 0.984 | 0.930 | 0.803 | 0.948 (0.944) |
+| Escaneo | 99.8 % | 0.977 | 0.912 | 0.808 | 0.937 (0.943) |
+| Foto con celular | 97.8 % | 0.958 | 0.927 | 0.778 | 0.925 (0.942) |
 
 «Señal original» es el mismo registro recortado al formato 3 × 4 sin pasar por papel: la
-diferencia es el costo de digitalizar, que se nota sobre todo en la especificidad de las fotos.
-Detalle e IC 95 % en `documentos/resultados/digitalizacion_extremo_a_extremo.json`.
+diferencia es el costo de digitalizar, que se nota sobre todo en las fotos.
+Con los mismos documentos, el modelo sin este ajuste (punto de corte 0.4303) obtenía
+especificidad 0.787 / 0.782 / 0.771 / 0.728 y sensibilidad 0.939 / 0.930 / 0.921 / 0.946.
+Detalle e IC 95 % en `documentos/resultados/impreso_digitalizado/digitalizacion_extremo_a_extremo.json`
+(modelo anterior: `documentos/resultados/digitalizacion_extremo_a_extremo.json`).
 
 Limitaciones: validado con hojas generadas a partir de PTB-XL, no con impresiones de
 electrocardiógrafos reales; requiere formato 3 × 4 a 25 mm/s y 10 mm/mV con el orden estándar
 de derivaciones y la hoja completa en la imagen; la derivación de la tira de ritmo se asume
-(II, o II/V1/V5 si hay tres).
+(II, o II/V1/V5 si hay tres). Cerca del 1 % de los documentos (casi siempre fotos) se digitaliza
+mal sin que el control de calidad lo detecte, por eso la web muestra la señal digitalizada
+para compararla con la hoja.
 
 ## Estructura del proyecto
 
@@ -217,9 +245,9 @@ de derivaciones y la hoja completa en la imagen; la derivación de la tira de ri
 | AUC-ROC | > 0.90 | 0.925 | 0.913 – 0.937 |
 
 ResNet1D variante `estandar`, 100 Hz, entrenada con aumento de datos; 2 198 ECG de prueba.
-El modelo para ECG impresos, sobre la vista 3 × 4 de los mismos 2 198 ECG (umbral 0.4066),
-obtiene sensibilidad 0.855 (0.823 – 0.884), especificidad 0.841 (0.823 – 0.858) y AUC 0.927
-(0.915 – 0.939); con documentos digitalizados, ver la tabla de la sección anterior.
+El modelo para ECG impresos, sobre la vista 3 × 4 de los mismos 2 198 ECG (umbral 0.3347),
+obtiene sensibilidad 0.858 (0.828 – 0.885), especificidad 0.843 (0.825 – 0.860) y AUC 0.928
+(0.916 – 0.940); con documentos digitalizados, ver la tabla de la sección anterior.
 Detalle en `documentos/resultados/metricas_prueba.json` y comparación con otros trabajos en
 `documentos/comparacion_literatura.md`.
 

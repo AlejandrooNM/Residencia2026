@@ -1,13 +1,13 @@
 {
-  "fecha": "2026-09-27T02:32:22",
+  "fecha": "2026-09-27T02:32:56",
   "conjunto": "prueba",
-  "checkpoint": "E:\\Residencia2026\\Proyecto\\modelo_ia\\puntos_control\\resnet1d_estandar_impreso_100hz\\mejor.pt",
-  "umbral_modelo": 0.406645,
+  "checkpoint": "modelo_ia\\puntos_control\\resnet1d_estandar_impreso_digitalizado_100hz\\mejor.pt",
+  "umbral_modelo": 0.3347,
   "umbral_documentos": {
-    "valor": 0.430314,
+    "valor": 0.36227,
     "criterio": "sensibilidad_minima",
-    "sensibilidad_validacion": 0.8539,
-    "especificidad_validacion": 0.7904
+    "sensibilidad_validacion": 0.8519,
+    "especificidad_validacion": 0.8057
   },
   "registros": 500,
   "prevalencia_iam": 0.228,
@@ -26,47 +26,47 @@
         }
       },
       "diagnostico_digitalizado": {
-        "sensibilidad": 0.9386,
-        "especificidad": 0.787,
-        "auc_roc": 0.9428,
-        "vp": 107,
-        "vn": 303,
-        "fp": 82,
-        "fn": 7
+        "sensibilidad": 0.9211,
+        "especificidad": 0.8052,
+        "auc_roc": 0.9413,
+        "vp": 105,
+        "vn": 310,
+        "fp": 75,
+        "fn": 9
       },
       "intervalos_confianza_95": {
         "sensibilidad": [
-          0.8947,
-          0.9798
+          0.8713,
+          0.9655
         ],
         "especificidad": [
-          0.7438,
-          0.8281
+          0.7644,
+          0.8434
         ],
         "auc_roc": [
-          0.9222,
-          0.9632
+          0.9214,
+          0.96
         ]
       },
       "diagnostico_digitalizado_umbral_modelo": {
-        "sensibilidad": 0.9474,
-        "especificidad": 0.774,
-        "auc_roc": 0.9428,
-        "vp": 108,
-        "vn": 298,
-        "fp": 87,
-        "fn": 6
+        "sensibilidad": 0.9298,
+        "especificidad": 0.7896,
+        "auc_roc": 0.9413,
+        "vp": 106,
+        "vn": 304,
+        "fp": 81,
+        "fn": 8
       },
       "diagnostico_senal_original_mismo_formato": {
-        "sensibilidad": 0.9386,
-        "especificidad": 0.8078,
-        "auc_roc": 0.9472,
-        "vp": 107,
-        "vn": 311,
-        "fp": 74,
-        "fn": 7
+        "sensibilidad": 0.9211,
+        "especificidad": 0.8104,
+        "auc_roc": 0.9435,
+        "vp": 105,
+        "vn": 312,
+        "fp": 73,
+        "fn": 9
       },
-      "acuerdo_decision_con_senal_original": 0.9519
+      "acuerdo_decision_con_senal_original": 0.9639
     },
     "imagen_limpia": {
       "fidelidad": {
@@ -83,46 +83,46 @@
       },
       "diagnostico_digitalizado": {
         "sensibilidad": 0.9298,
-        "especificidad": 0.7818,
+        "especificidad": 0.8026,
         "auc_roc": 0.9475,
         "vp": 106,
-        "vn": 301,
-        "fp": 84,
+        "vn": 309,
+        "fp": 76,
         "fn": 8
       },
       "intervalos_confianza_95": {
         "sensibilidad": [
-          0.8803,
-          0.9741
+          0.8824,
+          0.9735
         ],
         "especificidad": [
-          0.739,
-          0.8204
+          0.762,
+          0.8413
         ],
         "auc_roc": [
-          0.9281,
-          0.966
+          0.9298,
+          0.9653
         ]
       },
       "diagnostico_digitalizado_umbral_modelo": {
         "sensibilidad": 0.9386,
-        "especificidad": 0.7766,
+        "especificidad": 0.7974,
         "auc_roc": 0.9475,
         "vp": 107,
-        "vn": 299,
-        "fp": 86,
+        "vn": 307,
+        "fp": 78,
         "fn": 7
       },
       "diagnostico_senal_original_mismo_formato": {
-        "sensibilidad": 0.9386,
-        "especificidad": 0.8104,
-        "auc_roc": 0.9471,
-        "vp": 107,
-        "vn": 312,
-        "fp": 73,
-        "fn": 7
+        "sensibilidad": 0.9211,
+        "especificidad": 0.8156,
+        "auc_roc": 0.9439,
+        "vp": 105,
+        "vn": 314,
+        "fp": 71,
+        "fn": 9
       },
-      "acuerdo_decision_con_senal_original": 0.9559
+      "acuerdo_decision_con_senal_original": 0.9639
     },
     "escaneo": {
       "fidelidad": {
@@ -138,47 +138,47 @@
         }
       },
       "diagnostico_digitalizado": {
-        "sensibilidad": 0.9211,
-        "especificidad": 0.7714,
-        "auc_roc": 0.9371,
-        "vp": 105,
-        "vn": 297,
-        "fp": 88,
-        "fn": 9
+        "sensibilidad": 0.9123,
+        "especificidad": 0.8078,
+        "auc_roc": 0.9365,
+        "vp": 104,
+        "vn": 311,
+        "fp": 74,
+        "fn": 10
       },
       "intervalos_confianza_95": {
         "sensibilidad": [
-          0.8713,
-          0.9671
+          0.8598,
+          0.9604
         ],
         "especificidad": [
-          0.7237,
-          0.813
+          0.7656,
+          0.8449
         ],
         "auc_roc": [
-          0.9146,
-          0.96
+          0.9153,
+          0.9591
         ]
       },
       "diagnostico_digitalizado_umbral_modelo": {
-        "sensibilidad": 0.9298,
-        "especificidad": 0.761,
-        "auc_roc": 0.9371,
-        "vp": 106,
-        "vn": 293,
-        "fp": 92,
-        "fn": 8
+        "sensibilidad": 0.9211,
+        "especificidad": 0.7948,
+        "auc_roc": 0.9365,
+        "vp": 105,
+        "vn": 306,
+        "fp": 79,
+        "fn": 9
       },
       "diagnostico_senal_original_mismo_formato": {
-        "sensibilidad": 0.9386,
-        "especificidad": 0.8052,
-        "auc_roc": 0.9455,
-        "vp": 107,
-        "vn": 310,
-        "fp": 75,
-        "fn": 7
+        "sensibilidad": 0.9298,
+        "especificidad": 0.8078,
+        "auc_roc": 0.943,
+        "vp": 106,
+        "vn": 311,
+        "fp": 74,
+        "fn": 8
       },
-      "acuerdo_decision_con_senal_original": 0.9379
+      "acuerdo_decision_con_senal_original": 0.9439
     },
     "foto": {
       "fidelidad": {
@@ -195,56 +195,56 @@
         }
       },
       "diagnostico_digitalizado": {
-        "sensibilidad": 0.9455,
-        "especificidad": 0.7282,
-        "auc_roc": 0.9267,
-        "vp": 104,
-        "vn": 276,
-        "fp": 103,
-        "fn": 6
+        "sensibilidad": 0.9273,
+        "especificidad": 0.7784,
+        "auc_roc": 0.9252,
+        "vp": 102,
+        "vn": 295,
+        "fp": 84,
+        "fn": 8
       },
       "intervalos_confianza_95": {
         "sensibilidad": [
-          0.9,
-          0.9832
+          0.8774,
+          0.9732
         ],
         "especificidad": [
-          0.6801,
-          0.7715
+          0.7363,
+          0.8171
         ],
         "auc_roc": [
-          0.8992,
-          0.9524
+          0.8976,
+          0.9502
         ]
       },
       "diagnostico_digitalizado_umbral_modelo": {
-        "sensibilidad": 0.9455,
-        "especificidad": 0.7203,
-        "auc_roc": 0.9267,
-        "vp": 104,
-        "vn": 273,
-        "fp": 106,
-        "fn": 6
+        "sensibilidad": 0.9364,
+        "especificidad": 0.7625,
+        "auc_roc": 0.9252,
+        "vp": 103,
+        "vn": 289,
+        "fp": 90,
+        "fn": 7
       },
       "diagnostico_senal_original_mismo_formato": {
-        "sensibilidad": 0.9455,
-        "especificidad": 0.7968,
-        "auc_roc": 0.9449,
-        "vp": 104,
-        "vn": 302,
-        "fp": 77,
-        "fn": 6
+        "sensibilidad": 0.9182,
+        "especificidad": 0.8047,
+        "auc_roc": 0.9415,
+        "vp": 101,
+        "vn": 305,
+        "fp": 74,
+        "fn": 9
       },
-      "acuerdo_decision_con_senal_original": 0.9141
+      "acuerdo_decision_con_senal_original": 0.9284
     }
   },
   "todas_las_variantes": {
-    "sensibilidad": 0.9336,
-    "especificidad": 0.7673,
-    "auc_roc": 0.9385,
-    "vp": 422,
-    "vn": 1177,
-    "fp": 357,
-    "fn": 30
+    "sensibilidad": 0.9226,
+    "especificidad": 0.7986,
+    "auc_roc": 0.9374,
+    "vp": 417,
+    "vn": 1225,
+    "fp": 309,
+    "fn": 35
   }
 }
