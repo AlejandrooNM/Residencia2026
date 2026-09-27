@@ -14,6 +14,7 @@ from aplicacion.repositorios.repositorio_analisis import RepositorioAnalisis
 from aplicacion.servicios.proveedor_modelo import ModeloNoDisponible
 from aplicacion.servicios.servicio_analisis import ServicioAnalisis
 from aplicacion.utilidades.lectores_ecg import ErrorFormatoEcg
+from modelo_ia.digitalizacion.carga_imagen import ErrorImagenEcg
 from modelo_ia.preprocesamiento import ErrorSenalInvalida
 
 BYTES_POR_MB = 1024 * 1024
@@ -26,7 +27,7 @@ servicio_analisis = ServicioAnalisis()
 async def analizar_electrocardiograma(
     archivos: list[UploadFile] = File(
         ...,
-        description="Un archivo CSV/TXT/NPY, o el par WFDB .hea + .dat",
+        description="Un archivo CSV/TXT/NPY, el par WFDB .hea + .dat, o un ECG impreso (PDF, PNG, JPG)",
     ),
     frecuencia_muestreo: float | None = Form(
         None,
@@ -53,7 +54,7 @@ async def analizar_electrocardiograma(
         resultado = await run_in_threadpool(
             servicio_analisis.analizar, contenidos, frecuencia_muestreo
         )
-    except (ErrorFormatoEcg, ErrorSenalInvalida) as error:
+    except (ErrorFormatoEcg, ErrorSenalInvalida, ErrorImagenEcg) as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
     except ModeloNoDisponible as error:
         raise HTTPException(status_code=503, detail=str(error)) from error

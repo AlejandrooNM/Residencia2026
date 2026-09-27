@@ -49,7 +49,12 @@
         <div class="panel-cabecera">
           <h2 id="titulo-carga">Análisis de electrocardiograma</h2>
           <p>
-            Formatos admitidos: registro WFDB (suba juntos el <strong>.hea</strong> y el
+            <strong>ECG impreso:</strong> PDF exportado por el electrocardiógrafo, escaneo o foto
+            (<strong>.pdf</strong>, <strong>.png</strong>, <strong>.jpg</strong>) en formato 3 × 4
+            a 25 mm/s, con o sin tira de ritmo. Fotografíe la hoja completa, de frente y sin reflejos.
+          </p>
+          <p>
+            <strong>Señal digital:</strong> registro WFDB (suba juntos el <strong>.hea</strong> y el
             <strong>.dat</strong>), <strong>.csv</strong>/<strong>.txt</strong> con 12 columnas
             (una por derivación) o <strong>.npy</strong>. La frecuencia de muestreo se detecta
             automáticamente.
@@ -66,12 +71,12 @@
               id="archivo-ecg"
               name="archivo"
               type="file"
-              accept=".dat,.hea,.csv,.txt,.npy"
+              accept=".pdf,.png,.jpg,.jpeg,.dat,.hea,.csv,.txt,.npy"
               multiple
               required
             />
             <span class="zona-titulo">Arrastre su ECG aquí</span>
-            <span class="zona-detalle">o haga clic para seleccionarlo</span>
+            <span class="zona-detalle">PDF, foto o escaneo del trazo impreso, o la señal digital</span>
             <span id="nombre-archivo" class="nombre-archivo">Ningún archivo seleccionado</span>
           </label>
 
@@ -160,6 +165,11 @@
               <dt>Duración · FC estimada (orientativa)</dt>
               <dd id="valor-registro">—</dd>
             </div>
+            <div id="dato-digitalizacion" class="oculto">
+              <dt>Digitalización del trazo impreso</dt>
+              <dd id="valor-digitalizacion">—</dd>
+              <p id="texto-digitalizacion" class="texto-apoyo pequeno"></p>
+            </div>
           </dl>
 
           <div id="bloque-comparacion" class="bloque-comparacion oculto">
@@ -172,25 +182,64 @@
 
           <details class="bloque-fiabilidad">
             <summary>Desempeño y limitaciones del modelo</summary>
-            <p>
-              Evaluado en el fold 10 de PTB-XL: <strong>2 198 ECG</strong> de pacientes no
-              incluidos en el entrenamiento, con diagnóstico de referencia emitido por cardiólogos.
-              Prevalencia de IAM: 25 %. Punto de corte: 32 %.
-            </p>
-            <ul>
-              <li>Sensibilidad: <strong>0.840</strong> (IC 95 % 0.808–0.871).</li>
-              <li>Especificidad: <strong>0.843</strong> (IC 95 % 0.825–0.861).</li>
-              <li>AUC-ROC: <strong>0.925</strong> (IC 95 % 0.913–0.937).</li>
-              <li>
-                VPP <strong>0.64</strong> y VPN <strong>0.94</strong> con esa prevalencia; ambos
-                cambian con la prevalencia de su población.
-              </li>
-            </ul>
+            <div id="desempeno-senal">
+              <p>
+                Evaluado en el fold 10 de PTB-XL: <strong>2 198 ECG</strong> de pacientes no
+                incluidos en el entrenamiento, con diagnóstico de referencia emitido por cardiólogos.
+                Prevalencia de IAM: 25 %. Punto de corte: 32 %.
+              </p>
+              <ul>
+                <li>Sensibilidad: <strong>0.840</strong> (IC 95 % 0.808–0.871).</li>
+                <li>Especificidad: <strong>0.843</strong> (IC 95 % 0.825–0.861).</li>
+                <li>AUC-ROC: <strong>0.925</strong> (IC 95 % 0.913–0.937).</li>
+                <li>
+                  VPP <strong>0.64</strong> y VPN <strong>0.94</strong> con esa prevalencia; ambos
+                  cambian con la prevalencia de su población.
+                </li>
+              </ul>
+            </div>
+            <div id="desempeno-impreso" class="oculto">
+              <p>
+                Modelo ajustado al formato impreso 3 × 4. Evaluado con <strong>500 ECG</strong> del
+                fold 10 de PTB-XL (pacientes no incluidos en el entrenamiento, diagnóstico de
+                cardiólogos) impresos y digitalizados por el sistema en cada formato. Prevalencia
+                de IAM: 23 %. Punto de corte: 43 %.
+              </p>
+              <ul>
+                <li>
+                  PDF del equipo: sensibilidad <strong>0.939</strong> (IC 95 % 0.896–0.981),
+                  especificidad <strong>0.789</strong> (0.747–0.827), AUC <strong>0.944</strong>.
+                </li>
+                <li>
+                  Escaneo: sensibilidad <strong>0.921</strong> (0.871–0.967), especificidad
+                  <strong>0.771</strong> (0.724–0.813), AUC <strong>0.937</strong>.
+                </li>
+                <li>
+                  Foto con celular: sensibilidad <strong>0.946</strong> (0.900–0.983), especificidad
+                  <strong>0.726</strong> (0.680–0.771), AUC <strong>0.927</strong>.
+                </li>
+                <li>
+                  La hoja se digitalizó en el 99.6 % de los PDF, el 99.8 % de los escaneos y el
+                  97.8 % de las fotos; si no es posible, el sistema lo indica y pide otra imagen.
+                </li>
+                <li>
+                  Frente a la señal digital del mismo registro, la decisión cambia en 5 a 9 de cada
+                  100 ECG, sobre todo hacia falsos positivos (especificidad algo menor).
+                </li>
+              </ul>
+            </div>
             <p>Limitaciones:</p>
             <ul>
               <li>
-                Un resultado negativo no excluye IAM: alrededor de 16 de cada 100 registros con IAM
-                no son detectados.
+                Un resultado negativo no excluye IAM: alrededor de
+                <span id="falsos-negativos-por-cien">16</span> de cada 100 registros con IAM no son
+                detectados.
+              </li>
+              <li id="limitacion-impreso" class="oculto">
+                Digitalización validada con ECG de PTB-XL impresos por el sistema (PDF, escaneo y
+                foto simulados), aún no con hojas de electrocardiógrafos reales. Requiere formato
+                3 × 4 a 25 mm/s y 10 mm/mV con el orden estándar de derivaciones; la tira de ritmo
+                se asume en II (o II, V1 y V5 si hay tres).
               </li>
               <li>
                 Entrenado con la superclase MI de PTB-XL, que no distingue IAM agudo de infarto
@@ -206,8 +255,11 @@
           <div class="panel-grafico-cabecera">
             <h3 id="titulo-grafico">Explicabilidad: regiones que sustentan la predicción</h3>
             <p class="texto-apoyo">
-              Derivaciones del plano frontal (I, II, III, aVR, aVL, aVF), 10 s, tras filtrado
-              0.5–40 Hz. El fondo codifica la activación Grad-CAM para la clase IAM: a mayor
+              <span id="descripcion-derivaciones">
+                Derivaciones del plano frontal (I, II, III, aVR, aVL, aVF), 10 s, tras filtrado
+                0.5–40 Hz.
+              </span>
+              El fondo codifica la activación Grad-CAM para la clase IAM: a mayor
               intensidad de rojo, mayor contribución a la predicción. El mapa es
               <strong>temporal y común a las 12 derivaciones</strong>: indica en qué momento del
               trazo se apoyó el modelo, no qué derivación está afectada.

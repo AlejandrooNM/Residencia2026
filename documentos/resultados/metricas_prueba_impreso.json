@@ -1,0 +1,79 @@
+{
+  "fecha": "2026-09-26T17:33:31",
+  "checkpoint": "E:\\Residencia2026\\Proyecto\\modelo_ia\\puntos_control\\resnet1d_estandar_impreso_100hz\\mejor.pt",
+  "variante": "estandar",
+  "frecuencia_muestreo": 100,
+  "formato": "impreso_3x4_ritmo_II",
+  "tamanos": {
+    "validacion": 2183,
+    "prueba": 2198
+  },
+  "prevalencia_iam_prueba": 0.2502,
+  "umbral": {
+    "valor": 0.406645,
+    "criterio": "sensibilidad_minima",
+    "sensibilidad_validacion": 0.85,
+    "especificidad_validacion": 0.848448
+  },
+  "validacion_umbral_ajustado": {
+    "perdida": 0.331984,
+    "exactitud": 0.848832,
+    "sensibilidad": 0.85,
+    "especificidad": 0.848448,
+    "f1": 0.735577,
+    "auc_roc": 0.929038,
+    "vp": 459,
+    "vn": 1394,
+    "fp": 249,
+    "fn": 81
+  },
+  "prueba_umbral_0_5": {
+    "perdida": 0.34186,
+    "exactitud": 0.857598,
+    "sensibilidad": 0.823636,
+    "especificidad": 0.868932,
+    "f1": 0.743232,
+    "auc_roc": 0.927456,
+    "vp": 453,
+    "vn": 1432,
+    "fp": 216,
+    "fn": 97
+  },
+  "prueba_umbral_ajustado": {
+    "perdida": 0.34186,
+    "exactitud": 0.844404,
+    "sensibilidad": 0.854545,
+    "especificidad": 0.841019,
+    "f1": 0.733229,
+    "auc_roc": 0.927456,
+    "vp": 470,
+    "vn": 1386,
+    "fp": 262,
+    "fn": 80,
+    "precision_media": 0.82735
+  },
+  "intervalos_confianza_95": {
+    "sensibilidad": [
+      0.8231,
+      0.884
+    ],
+    "especificidad": [
+      0.8229,
+      0.8584
+    ],
+    "auc_roc": [
+      0.915,
+      0.9391
+    ]
+  },
+  "objetivos_anteproyecto": {
+    "sensibilidad": 0.85,
+    "especificidad": 0.8,
+    "auc_roc": 0.9
+  },
+  "objetivos_cumplidos": {
+    "sensibilidad": true,
+    "especificidad": true,
+    "auc_roc": true
+  }
+}

@@ -9,7 +9,11 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from modelo_ia.entrenamiento.aumento_datos import AumentadorEcg
+from modelo_ia.entrenamiento.aumento_datos import (
+    AumentadorEcg,
+    ComposicionTransformaciones,
+    SimuladorFormatoImpreso,
+)
 
 TransformacionSenal = Callable[[np.ndarray], np.ndarray]
 
@@ -56,11 +60,21 @@ def cargar_conjuntos(
     carpeta_procesado: Path,
     aumentar_entrenamiento: bool = False,
     cargar_en_memoria: bool = False,
+    formato_impreso: bool = False,
 ) -> dict[str, ConjuntoEcgIam]:
-    """Crea datasets de entrenamiento, validación y prueba (aumento solo en entrenamiento)."""
+    """
+    Crea datasets de entrenamiento, validación y prueba (aumento solo en entrenamiento).
+
+    Con `formato_impreso` todas las particiones se ven como un ECG 3 x 4 digitalizado;
+    en entrenamiento el formato varía al azar y en validación/prueba es fijo.
+    """
     conjuntos: dict[str, ConjuntoEcgIam] = {}
     for nombre in ("entrenamiento", "validacion", "prueba"):
-        transformacion = AumentadorEcg() if aumentar_entrenamiento and nombre == "entrenamiento" else None
+        transformacion = _crear_transformacion(
+            es_entrenamiento=nombre == "entrenamiento",
+            aumentar=aumentar_entrenamiento,
+            formato_impreso=formato_impreso,
+        )
         conjuntos[nombre] = ConjuntoEcgIam(
             ruta_x=carpeta_procesado / f"x_{nombre}.npy",
             ruta_y=carpeta_procesado / f"y_{nombre}.npy",
@@ -68,3 +82,18 @@ def cargar_conjuntos(
             cargar_en_memoria=cargar_en_memoria,
         )
     return conjuntos
+
+
+def _crear_transformacion(
+    es_entrenamiento: bool,
+    aumentar: bool,
+    formato_impreso: bool,
+) -> TransformacionSenal | None:
+    transformaciones: list[TransformacionSenal] = []
+    if aumentar and es_entrenamiento:
+        transformaciones.append(AumentadorEcg())
+    if formato_impreso:
+        transformaciones.append(SimuladorFormatoImpreso(aleatorio=es_entrenamiento))
+    if not transformaciones:
+        return None
+    return ComposicionTransformaciones(*transformaciones)

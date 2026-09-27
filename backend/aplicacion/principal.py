@@ -15,6 +15,7 @@ from aplicacion.nucleo.base_de_datos import inicializar_base_de_datos
 from aplicacion.nucleo.configuracion import obtener_configuracion
 
 RUTA_FRONTEND = Path(__file__).resolve().parents[2] / "frontend"
+CABECERAS_SIN_CACHE = {"Cache-Control": "no-cache"}
 
 
 @asynccontextmanager
@@ -73,7 +74,7 @@ def crear_aplicacion() -> FastAPI:
 
         @aplicacion.get("/", include_in_schema=False)
         def servir_inicio() -> FileResponse:
-            return FileResponse(RUTA_FRONTEND / "index.html")
+            return FileResponse(RUTA_FRONTEND / "index.html", headers=CABECERAS_SIN_CACHE)
 
         @aplicacion.get("/src/{ruta_archivo:path}", include_in_schema=False)
         def servir_fuente_frontend(ruta_archivo: str) -> FileResponse:
@@ -81,7 +82,7 @@ def crear_aplicacion() -> FastAPI:
             raiz = (RUTA_FRONTEND / "src").resolve()
             if not str(archivo).startswith(str(raiz)) or not archivo.is_file():
                 raise HTTPException(status_code=404, detail="Recurso no encontrado")
-            return FileResponse(archivo)
+            return FileResponse(archivo, headers=CABECERAS_SIN_CACHE)
 
     return aplicacion
 

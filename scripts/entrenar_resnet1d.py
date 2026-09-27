@@ -6,6 +6,8 @@ Uso (desde la raíz del proyecto, con el venv activo):
     python scripts/entrenar_resnet1d.py --variante ligera --epocas 12
     python scripts/entrenar_resnet1d.py --variante estandar --epocas 20 --lote 16
     python scripts/entrenar_resnet1d.py --variante estandar --epocas 30 --aumento-datos
+    python scripts/entrenar_resnet1d.py --variante estandar --formato-impreso --aumento-datos \
+        --pesos-iniciales modelo_ia/puntos_control/resnet1d_estandar_100hz/mejor.pt --lr 3e-4
 """
 
 from __future__ import annotations
@@ -93,6 +95,17 @@ def parsear_argumentos() -> argparse.Namespace:
         help="Aplica aumento de datos (escala, ruido, deriva, desplazamiento) al entrenamiento",
     )
     parser.add_argument(
+        "--formato-impreso",
+        action="store_true",
+        help="Entrena con la vista de un ECG impreso 3x4 digitalizado (2.5 s por derivacion)",
+    )
+    parser.add_argument(
+        "--pesos-iniciales",
+        type=Path,
+        default=None,
+        help="Checkpoint desde el que continuar (ajuste fino), p. ej. el modelo de 10 s",
+    )
+    parser.add_argument(
         "--permitir-cpu",
         action="store_true",
         help="Permite entrenar en CPU (solo pruebas). El entrenamiento final debe usar GPU.",
@@ -121,11 +134,12 @@ def main() -> None:
     if args.carpeta_salida is not None:
         carpeta_checkpoints = args.carpeta_salida
     else:
+        sufijo_formato = "_impreso" if args.formato_impreso else ""
         carpeta_checkpoints = (
             RUTA_RAIZ
             / "modelo_ia"
             / "puntos_control"
-            / f"resnet1d_{args.variante}_{args.frecuencia}hz"
+            / f"resnet1d_{args.variante}{sufijo_formato}_{args.frecuencia}hz"
         )
 
     print("=" * 60)
@@ -137,11 +151,13 @@ def main() -> None:
     print(f"Checkpoints: {carpeta_checkpoints}")
     print(f"Epocas:      {configuracion.epocas} | lote={configuracion.tamano_lote} | lr={configuracion.tasa_aprendizaje}")
     print(f"Aumento:     {'si' if args.aumento_datos else 'no'}")
+    print(f"Formato:     {'impreso 3x4' if args.formato_impreso else 'digital 10 s'}")
 
     conjuntos = cargar_conjuntos(
         carpeta_procesado,
         aumentar_entrenamiento=args.aumento_datos,
         cargar_en_memoria=True,
+        formato_impreso=args.formato_impreso,
     )
     print(
         f"Tamanios: train={len(conjuntos['entrenamiento'])}, "
@@ -165,6 +181,10 @@ def main() -> None:
     )
 
     modelo = crear_resnet1d_iam(variante=args.variante)
+    if args.pesos_iniciales is not None:
+        checkpoint = torch.load(args.pesos_iniciales, map_location="cpu")
+        modelo.load_state_dict(checkpoint["estado_modelo"])
+        print(f"Pesos iniciales: {args.pesos_iniciales}")
     print(modelo.describir())
 
     pesos_clase = cargar_pesos_clase(carpeta_procesado, dispositivo)

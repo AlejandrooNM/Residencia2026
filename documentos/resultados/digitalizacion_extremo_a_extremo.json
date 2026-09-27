@@ -1,0 +1,250 @@
+{
+  "fecha": "2026-09-26T20:59:31",
+  "conjunto": "prueba",
+  "checkpoint": "E:\\Residencia2026\\Proyecto\\modelo_ia\\puntos_control\\resnet1d_estandar_impreso_100hz\\mejor.pt",
+  "umbral_modelo": 0.406645,
+  "umbral_documentos": {
+    "valor": 0.430314,
+    "criterio": "sensibilidad_minima",
+    "sensibilidad_validacion": 0.8539,
+    "especificidad_validacion": 0.7922
+  },
+  "registros": 500,
+  "prevalencia_iam": 0.228,
+  "variantes": {
+    "pdf_equipo": {
+      "fidelidad": {
+        "documentos": 500,
+        "digitalizados": 498,
+        "tasa_exito": 0.996,
+        "correlacion_mediana": 0.989,
+        "fraccion_derivaciones_correlacion_0_9": 0.9702,
+        "cobertura_media": 1.0,
+        "tiras_ritmo_detectadas_bien": 1.0,
+        "errores_frecuentes": {
+          "La longitud de las filas no corresponde a 10 s a 25 mm/s según la cuadrícula. Verifique que el ECG se imprimió a 25 mm/s y que la hoja aparece completa.": 2
+        }
+      },
+      "diagnostico_digitalizado": {
+        "sensibilidad": 0.9386,
+        "especificidad": 0.7891,
+        "auc_roc": 0.9442,
+        "vp": 107,
+        "vn": 303,
+        "fp": 81,
+        "fn": 7
+      },
+      "intervalos_confianza_95": {
+        "sensibilidad": [
+          0.8958,
+          0.9811
+        ],
+        "especificidad": [
+          0.7474,
+          0.8265
+        ],
+        "auc_roc": [
+          0.9227,
+          0.9644
+        ]
+      },
+      "diagnostico_digitalizado_umbral_modelo": {
+        "sensibilidad": 0.9474,
+        "especificidad": 0.776,
+        "auc_roc": 0.9442,
+        "vp": 108,
+        "vn": 298,
+        "fp": 86,
+        "fn": 6
+      },
+      "diagnostico_senal_original_mismo_formato": {
+        "sensibilidad": 0.9386,
+        "especificidad": 0.8099,
+        "auc_roc": 0.9484,
+        "vp": 107,
+        "vn": 311,
+        "fp": 73,
+        "fn": 7
+      },
+      "acuerdo_decision_con_senal_original": 0.9518
+    },
+    "imagen_limpia": {
+      "fidelidad": {
+        "documentos": 500,
+        "digitalizados": 498,
+        "tasa_exito": 0.996,
+        "correlacion_mediana": 0.9835,
+        "fraccion_derivaciones_correlacion_0_9": 0.9513,
+        "cobertura_media": 1.0,
+        "tiras_ritmo_detectadas_bien": 1.0,
+        "errores_frecuentes": {
+          "La longitud de las filas no corresponde a 10 s a 25 mm/s según la cuadrícula. Verifique que el ECG se imprimió a 25 mm/s y que la hoja aparece completa.": 2
+        }
+      },
+      "diagnostico_digitalizado": {
+        "sensibilidad": 0.9298,
+        "especificidad": 0.7839,
+        "auc_roc": 0.9488,
+        "vp": 106,
+        "vn": 301,
+        "fp": 83,
+        "fn": 8
+      },
+      "intervalos_confianza_95": {
+        "sensibilidad": [
+          0.8839,
+          0.9725
+        ],
+        "especificidad": [
+          0.744,
+          0.8218
+        ],
+        "auc_roc": [
+          0.929,
+          0.967
+        ]
+      },
+      "diagnostico_digitalizado_umbral_modelo": {
+        "sensibilidad": 0.9386,
+        "especificidad": 0.7786,
+        "auc_roc": 0.9488,
+        "vp": 107,
+        "vn": 299,
+        "fp": 85,
+        "fn": 7
+      },
+      "diagnostico_senal_original_mismo_formato": {
+        "sensibilidad": 0.9386,
+        "especificidad": 0.8125,
+        "auc_roc": 0.9484,
+        "vp": 107,
+        "vn": 312,
+        "fp": 72,
+        "fn": 7
+      },
+      "acuerdo_decision_con_senal_original": 0.9558
+    },
+    "escaneo": {
+      "fidelidad": {
+        "documentos": 500,
+        "digitalizados": 499,
+        "tasa_exito": 0.998,
+        "correlacion_mediana": 0.9762,
+        "fraccion_derivaciones_correlacion_0_9": 0.9097,
+        "cobertura_media": 1.0,
+        "tiras_ritmo_detectadas_bien": 1.0,
+        "errores_frecuentes": {
+          "La longitud de las filas no corresponde a 10 s a 25 mm/s según la cuadrícula. Verifique que el ECG se imprimió a 25 mm/s y que la hoja aparece completa.": 1
+        }
+      },
+      "diagnostico_digitalizado": {
+        "sensibilidad": 0.9211,
+        "especificidad": 0.7714,
+        "auc_roc": 0.9371,
+        "vp": 105,
+        "vn": 297,
+        "fp": 88,
+        "fn": 9
+      },
+      "intervalos_confianza_95": {
+        "sensibilidad": [
+          0.8713,
+          0.9671
+        ],
+        "especificidad": [
+          0.7237,
+          0.813
+        ],
+        "auc_roc": [
+          0.9144,
+          0.9602
+        ]
+      },
+      "diagnostico_digitalizado_umbral_modelo": {
+        "sensibilidad": 0.9298,
+        "especificidad": 0.761,
+        "auc_roc": 0.9371,
+        "vp": 106,
+        "vn": 293,
+        "fp": 92,
+        "fn": 8
+      },
+      "diagnostico_senal_original_mismo_formato": {
+        "sensibilidad": 0.9386,
+        "especificidad": 0.8052,
+        "auc_roc": 0.9455,
+        "vp": 107,
+        "vn": 310,
+        "fp": 75,
+        "fn": 7
+      },
+      "acuerdo_decision_con_senal_original": 0.9379
+    },
+    "foto": {
+      "fidelidad": {
+        "documentos": 500,
+        "digitalizados": 489,
+        "tasa_exito": 0.978,
+        "correlacion_mediana": 0.9573,
+        "fraccion_derivaciones_correlacion_0_9": 0.7551,
+        "cobertura_media": 1.0,
+        "tiras_ritmo_detectadas_bien": 0.998,
+        "errores_frecuentes": {
+          "La longitud de las filas no corresponde a 10 s a 25 mm/s según la cuadrícula. Verifique que el ECG se imprimió a 25 mm/s y que la hoja aparece completa.": 6,
+          "Se detectaron 0 filas de trazo. El sistema reconoce el formato 3 x 4 (tres filas de cuatro derivaciones) con hasta tres tiras de ritmo.": 5
+        }
+      },
+      "diagnostico_digitalizado": {
+        "sensibilidad": 0.9455,
+        "especificidad": 0.7256,
+        "auc_roc": 0.9265,
+        "vp": 104,
+        "vn": 275,
+        "fp": 104,
+        "fn": 6
+      },
+      "intervalos_confianza_95": {
+        "sensibilidad": [
+          0.9,
+          0.9832
+        ],
+        "especificidad": [
+          0.6795,
+          0.7712
+        ],
+        "auc_roc": [
+          0.8989,
+          0.9523
+        ]
+      },
+      "diagnostico_digitalizado_umbral_modelo": {
+        "sensibilidad": 0.9455,
+        "especificidad": 0.7177,
+        "auc_roc": 0.9265,
+        "vp": 104,
+        "vn": 272,
+        "fp": 107,
+        "fn": 6
+      },
+      "diagnostico_senal_original_mismo_formato": {
+        "sensibilidad": 0.9455,
+        "especificidad": 0.7968,
+        "auc_roc": 0.9449,
+        "vp": 104,
+        "vn": 302,
+        "fp": 77,
+        "fn": 6
+      },
+      "acuerdo_decision_con_senal_original": 0.9121
+    }
+  },
+  "todas_las_variantes": {
+    "sensibilidad": 0.9336,
+    "especificidad": 0.7676,
+    "auc_roc": 0.9392,
+    "vp": 422,
+    "vn": 1176,
+    "fp": 356,
+    "fn": 30
+  }
+}

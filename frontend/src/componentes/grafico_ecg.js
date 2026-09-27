@@ -6,12 +6,14 @@ const NOMBRES_CLINICOS = { AVR: "aVR", AVL: "aVL", AVF: "aVF" };
 const COLOR_TEXTO_SUAVE = "#9db4bd";
 const COLOR_REJILLA = "rgba(155, 190, 198, 0.12)";
 const SEPARACION_MINIMA_ETIQUETAS_PX = 44;
+const ALTO_DERIVACION_PX = 72;
+const ALTO_DERIVACION_COMPACTO_PX = 52;
 
 /**
  * @param {HTMLCanvasElement} lienzo
  * @param {{
  *   nombres_derivaciones: string[],
- *   senales: number[][],
+ *   senales: (number | null)[][],
  *   mapa_grad_cam: number[],
  *   duracion_segundos?: number,
  * }} datos
@@ -22,7 +24,8 @@ export function dibujarEcgConGradCam(lienzo, datos) {
 
   const dpr = window.devicePixelRatio || 1;
   const anchoCss = lienzo.clientWidth || 640;
-  const altoCss = Math.max(340, datos.senales.length * 72 + 100);
+  const altoPorDerivacion = datos.senales.length > 6 ? ALTO_DERIVACION_COMPACTO_PX : ALTO_DERIVACION_PX;
+  const altoCss = Math.max(340, datos.senales.length * altoPorDerivacion + 100);
   lienzo.width = Math.floor(anchoCss * dpr);
   lienzo.height = Math.floor(altoCss * dpr);
   contexto.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -113,24 +116,28 @@ function dibujarMapaFondo(contexto, mapa, x, y, ancho, alto) {
   }
 }
 
+/** Los valores null (tramos no impresos en papel) se dejan como hueco. */
 function dibujarSerie(contexto, serie, x, y, ancho, alto, color) {
-  if (!serie.length) return;
-  let minimo = Infinity;
-  let maximo = -Infinity;
-  for (const valor of serie) {
-    if (valor < minimo) minimo = valor;
-    if (valor > maximo) maximo = valor;
-  }
+  const presentes = serie.filter((valor) => valor !== null);
+  if (!presentes.length) return;
+  const minimo = Math.min(...presentes);
+  const maximo = Math.max(...presentes);
   const rango = Math.max(maximo - minimo, 1e-6);
 
   contexto.strokeStyle = color;
   contexto.lineWidth = 1.25;
   contexto.beginPath();
+  let trazando = false;
   serie.forEach((valor, indice) => {
+    if (valor === null) {
+      trazando = false;
+      return;
+    }
     const px = x + (indice / (serie.length - 1)) * ancho;
     const py = y + (1 - (valor - minimo) / rango) * alto;
-    if (indice === 0) contexto.moveTo(px, py);
-    else contexto.lineTo(px, py);
+    if (trazando) contexto.lineTo(px, py);
+    else contexto.moveTo(px, py);
+    trazando = true;
   });
   contexto.stroke();
 }

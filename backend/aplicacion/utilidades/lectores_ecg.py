@@ -97,7 +97,7 @@ def leer_archivos_ecg(
     if no_admitidas:
         raise ErrorFormatoEcg(
             f"Extensión no admitida: {', '.join(sorted(no_admitidas))}. "
-            "Use .hea + .dat, .csv, .txt o .npy."
+            "Use .hea + .dat, .csv, .txt, .npy o un ECG impreso en PDF, PNG o JPG."
         )
 
     if extensiones & EXTENSIONES_WFDB:

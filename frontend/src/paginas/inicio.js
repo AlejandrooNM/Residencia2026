@@ -50,6 +50,14 @@ const valorFrecuencia = document.getElementById("valor-frecuencia");
 const textoOrigenFrecuencia = document.getElementById("texto-origen-frecuencia");
 const datoRegistro = document.getElementById("dato-registro");
 const valorRegistro = document.getElementById("valor-registro");
+const datoDigitalizacion = document.getElementById("dato-digitalizacion");
+const valorDigitalizacion = document.getElementById("valor-digitalizacion");
+const textoDigitalizacion = document.getElementById("texto-digitalizacion");
+const descripcionDerivaciones = document.getElementById("descripcion-derivaciones");
+const desempenoSenal = document.getElementById("desempeno-senal");
+const desempenoImpreso = document.getElementById("desempeno-impreso");
+const limitacionImpreso = document.getElementById("limitacion-impreso");
+const falsosNegativosPorCien = document.getElementById("falsos-negativos-por-cien");
 const bloqueComparacion = document.getElementById("bloque-comparacion");
 const valorReal = document.getElementById("valor-real");
 const valorAcierto = document.getElementById("valor-acierto");
@@ -72,6 +80,18 @@ const ORIGENES_FRECUENCIA = {
   columna_tiempo: "Calculada a partir de la columna de tiempo del archivo.",
   estimada: "Detectada automáticamente a partir de la frecuencia cardiaca y la anchura del QRS.",
 };
+
+const TIPO_DOCUMENTO_IMPRESO = "documento_impreso";
+const DESCRIPCION_DERIVACIONES = {
+  senal:
+    "Derivaciones del plano frontal (I, II, III, aVR, aVL, aVF), 10 s, tras filtrado 0.5–40 Hz.",
+  [TIPO_DOCUMENTO_IMPRESO]:
+    "Las 12 derivaciones extraídas del ECG impreso. En el formato 3 × 4 cada derivación solo " +
+    "se imprime durante 2.5 s de su columna; los huecos son tramos que no aparecen en papel. " +
+    "Compare el trazo con su hoja para verificar la digitalización.",
+};
+// 1 − sensibilidad: medida en prueba (señal) y la exigida al elegir el punto de corte (impreso)
+const FALSOS_NEGATIVOS_POR_CIEN = { senal: 16, [TIPO_DOCUMENTO_IMPRESO]: 15 };
 
 let indiceDemo = 0;
 let ultimaVisualizacion = null;
@@ -136,10 +156,12 @@ function mostrarAdvertencias(advertencias) {
 
 /**
  * @param {{
+ *   tipo_entrada?: string,
  *   frecuencia_original?: number | null,
  *   origen_frecuencia?: string | null,
  *   duracion_original_segundos?: number | null,
  *   frecuencia_cardiaca_lpm?: number | null,
+ *   digitalizacion?: object | null,
  * } | null} registro Datos de lectura del archivo; null en los casos de ejemplo
  */
 function mostrarDatosRegistro(registro) {
@@ -154,8 +176,57 @@ function mostrarDatosRegistro(registro) {
   datoRegistro.classList.toggle("oculto", !duracion);
   if (duracion) {
     const fc = registro.frecuencia_cardiaca_lpm;
-    valorRegistro.textContent = `${duracion.toFixed(1)} s · ${fc ? `${fc} lpm` : "FC no disponible"}`;
+    const textoFc = fc ? `${fc} lpm` : "FC no disponible";
+    valorRegistro.textContent = registro.digitalizacion
+      ? `${duracion.toFixed(0)} s en papel a 25 mm/s · ${fc ? textoFc : "FC requiere tira de ritmo"}`
+      : `${duracion.toFixed(1)} s · ${textoFc}`;
   }
+
+  mostrarDigitalizacion(registro?.digitalizacion ?? null);
+  mostrarDesempenoModelo(Boolean(registro?.digitalizacion));
+}
+
+/** El ECG impreso se analiza con el modelo ajustado al formato 3 × 4, con métricas propias. */
+function mostrarDesempenoModelo(esImpreso) {
+  desempenoSenal.classList.toggle("oculto", esImpreso);
+  desempenoImpreso.classList.toggle("oculto", !esImpreso);
+  limitacionImpreso.classList.toggle("oculto", !esImpreso);
+  falsosNegativosPorCien.textContent =
+    FALSOS_NEGATIVOS_POR_CIEN[esImpreso ? TIPO_DOCUMENTO_IMPRESO : "senal"];
+}
+
+/**
+ * @param {{
+ *   cobertura: number,
+ *   concordancia_ritmo: number | null,
+ *   tiras_ritmo: string[],
+ *   correccion_perspectiva: boolean,
+ *   angulo_enderezado: number,
+ * } | null} digitalizacion
+ */
+function mostrarDigitalizacion(digitalizacion) {
+  datoDigitalizacion.classList.toggle("oculto", !digitalizacion);
+  if (!digitalizacion) return;
+
+  const tiras = digitalizacion.tiras_ritmo.length
+    ? `tira de ritmo ${digitalizacion.tiras_ritmo.join(", ")}`
+    : "sin tira de ritmo";
+  valorDigitalizacion.textContent =
+    `Trazo recuperado ${formatearPorcentaje(digitalizacion.cobertura)} · formato 3 × 4, ${tiras}`;
+
+  const detalles = [];
+  if (digitalizacion.concordancia_ritmo !== null) {
+    detalles.push(
+      `La tira de ritmo coincide en ${formatearPorcentaje(digitalizacion.concordancia_ritmo)} ` +
+        "con el tramo de II del formato 3 × 4 (control de calidad).",
+    );
+  }
+  if (digitalizacion.correccion_perspectiva) {
+    detalles.push("Se recortó la hoja y se corrigió la perspectiva de la foto.");
+  } else if (Math.abs(digitalizacion.angulo_enderezado) > 0) {
+    detalles.push(`Se enderezó la hoja ${Math.abs(digitalizacion.angulo_enderezado).toFixed(1)}°.`);
+  }
+  textoDigitalizacion.textContent = detalles.join(" ");
 }
 
 /**
@@ -214,13 +285,19 @@ function mostrarSinAnalisis(nombre, mensaje) {
   tarjetaResultado.classList.remove("oculto");
 }
 
-function mostrarGrafico(visualizacion, esIam) {
+function mostrarGrafico(visualizacion, esIam, tipoEntrada = "senal") {
   ultimaVisualizacion = visualizacion;
   panelGrafico.classList.remove("oculto");
-  detalleGrafico.textContent =
-    visualizacion.origen === "carga_usuario"
-      ? "Registro cargado por el usuario, remuestreado a 100 Hz."
-      : `Registro n.º ${visualizacion.indice} del conjunto de validación PTB-XL (100 Hz).`;
+  const esImpreso = tipoEntrada === TIPO_DOCUMENTO_IMPRESO;
+  descripcionDerivaciones.textContent = DESCRIPCION_DERIVACIONES[esImpreso ? tipoEntrada : "senal"];
+  if (visualizacion.origen !== "carga_usuario") {
+    detalleGrafico.textContent =
+      `Registro n.º ${visualizacion.indice} del conjunto de validación PTB-XL (100 Hz).`;
+  } else {
+    detalleGrafico.textContent = esImpreso
+      ? "ECG impreso digitalizado y remuestreado a 100 Hz."
+      : "Registro cargado por el usuario, remuestreado a 100 Hz.";
+  }
 
   dibujarEcgConGradCam(lienzoEcg, visualizacion);
   textoZonas.textContent = describirZonas(visualizacion.importancia_por_zona, esIam);
@@ -423,7 +500,12 @@ formulario.addEventListener("submit", async (evento) => {
 
   botonAnalizar.disabled = true;
   botonAnalizar.textContent = "Analizando…";
-  mostrarEstado("Analizando el electrocardiograma…");
+  const esDocumento = archivos.some((archivo) => /\.(pdf|png|jpe?g)$/i.test(archivo.name));
+  mostrarEstado(
+    esDocumento
+      ? "Digitalizando el trazo impreso y analizando… (puede tardar unos segundos)"
+      : "Analizando el electrocardiograma…",
+  );
 
   try {
     const resultado = await analizarElectrocardiograma(archivos, campoFrecuencia.value);
@@ -442,7 +524,7 @@ formulario.addEventListener("submit", async (evento) => {
       advertencias: resultado.advertencias ?? [],
     });
     if (resultado.visualizacion) {
-      mostrarGrafico(resultado.visualizacion, interpretacion.esIam);
+      mostrarGrafico(resultado.visualizacion, interpretacion.esIam, resultado.tipo_entrada);
     } else {
       ocultarGrafico();
     }

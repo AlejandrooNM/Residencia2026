@@ -56,3 +56,13 @@ def obtener_proveedor_modelo() -> ProveedorModelo:
         ruta_checkpoint=resolver_ruta(configuracion.ruta_checkpoint),
         variante=configuracion.variante_modelo,
     )
+
+
+@lru_cache
+def obtener_proveedor_modelo_impreso() -> ProveedorModelo:
+    """Modelo ajustado para ECG impresos en formato 3 x 4 (2.5 s por derivación)."""
+    configuracion = obtener_configuracion()
+    return ProveedorModelo(
+        ruta_checkpoint=resolver_ruta(configuracion.ruta_checkpoint_impreso),
+        variante=configuracion.variante_modelo,
+    )
