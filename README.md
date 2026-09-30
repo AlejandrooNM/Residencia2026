@@ -68,6 +68,25 @@ python scripts/explorar_dataset_ptbxl.py
 python scripts/preprocesar_dataset_ptbxl.py --frecuencia 100
 ```
 
+### Bases externas para validación
+
+Para medir el modelo con pacientes, países y equipos distintos a PTB-XL:
+
+```powershell
+python scripts/descargar_bases_externas.py          # las cuatro (~6 GB), reanudable
+python scripts/descargar_bases_externas.py --bases georgia mendeley
+```
+
+| Base | Origen | Contenido | Uso |
+|------|--------|-----------|-----|
+| Georgia 12-Lead (G12EC) | EE. UU. | ~10 300 ECG WFDB, 10 s, 500 Hz, códigos SNOMED | Validación externa de la señal digital |
+| SPH (Shandong) | China | ~25 000 ECG HDF5, 10 s, 500 Hz, códigos AHA | Segunda población externa |
+| PTB Diagnostic | Alemania | 549 registros WFDB, 1000 Hz | Referencia secundaria (misma institución que PTB-XL) |
+| ECG Images (Mendeley) | Pakistán | 928 fotos de ECG impresos: infarto, antecedente, latido anormal, normal | Validación del digitalizador con hojas reales |
+
+Quedan en `dataset/crudo/externos/` (fuera de git). MIMIC-IV-ECG no se descarga
+automáticamente: requiere acreditación personal en PhysioNet.
+
 ## Levantar la web
 
 ```powershell

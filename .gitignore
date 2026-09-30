@@ -68,6 +68,7 @@ cargas/**
 # Informe técnico de la residencia (se entrega por separado, no se publica)
 documentos/Informe_Tecnico_*.docx
 documentos/generar_informe.py
+~$*
 
 # Frontend (si se usa Node)
 frontend/node_modules/
