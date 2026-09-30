@@ -48,8 +48,6 @@ dataset/procesado/**
 # Modelos entrenados y puntos de control
 modelo_ia/puntos_control/**
 !modelo_ia/puntos_control/.gitkeep
-modelo_ia/explicabilidad/salidas/**
-!modelo_ia/explicabilidad/salidas/.gitkeep
 *.pt
 *.pth
 *.onnx
@@ -66,6 +64,10 @@ base_de_datos/respaldos/**
 cargas/**
 !cargas/.gitkeep
 !cargas/ecg/.gitkeep
+
+# Informe técnico de la residencia (se entrega por separado, no se publica)
+documentos/Informe_Tecnico_*.docx
+documentos/generar_informe.py
 
 # Frontend (si se usa Node)
 frontend/node_modules/

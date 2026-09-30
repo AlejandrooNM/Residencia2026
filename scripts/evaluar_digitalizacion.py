@@ -71,9 +71,9 @@ CARPETA_PTBXL = (
 CARPETA_PROCESADO = RUTA_RAIZ / "dataset" / "procesado" / "frecuencia_100"
 RUTA_METADATOS_PRUEBA = CARPETA_PROCESADO / "metadatos_prueba.csv"
 RUTA_CHECKPOINT_IMPRESO = (
-    RUTA_RAIZ / "modelo_ia" / "puntos_control" / "resnet1d_estandar_impreso_100hz" / "mejor.pt"
+    RUTA_RAIZ / "modelo_ia" / "puntos_control" / "resnet1d_estandar_impreso_digitalizado_100hz" / "mejor.pt"
 )
-CARPETA_RESULTADOS = RUTA_RAIZ / "documentos" / "resultados"
+CARPETA_RESULTADOS = RUTA_RAIZ / "documentos" / "resultados" / "impreso_digitalizado"
 NOMBRE_METRICAS_IMPRESO = "metricas_prueba_impreso.json"
 NOMBRE_CACHE = "cache_digitalizacion_{conjunto}_{registros}_{semilla}.pkl"
 NOMBRE_REPORTE = "digitalizacion_extremo_a_extremo{sufijo}.json"

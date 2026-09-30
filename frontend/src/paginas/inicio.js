@@ -18,6 +18,7 @@ import {
   interpretarResultado,
   muestraASegundos,
 } from "../componentes/interpretacion.js";
+import { activarVistaRedNeuronal } from "../componentes/red_neuronal.js";
 
 const formulario = document.getElementById("formulario-analisis");
 const campoArchivo = document.getElementById("archivo-ecg");
@@ -549,3 +550,4 @@ window.addEventListener("resize", () => {
 
 actualizarNombreArchivo();
 comprobarApi();
+activarVistaRedNeuronal({ elementoMarca: document.querySelector(".marca") });

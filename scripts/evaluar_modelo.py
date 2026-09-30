@@ -47,8 +47,11 @@ RUTA_CHECKPOINT_PREDETERMINADA = (
     RUTA_RAIZ / "modelo_ia" / "puntos_control" / "resnet1d_estandar_100hz" / "mejor.pt"
 )
 RUTA_CHECKPOINT_IMPRESO = (
-    RUTA_RAIZ / "modelo_ia" / "puntos_control" / "resnet1d_estandar_impreso_100hz" / "mejor.pt"
+    RUTA_RAIZ / "modelo_ia" / "puntos_control" / "resnet1d_estandar_impreso_digitalizado_100hz" / "mejor.pt"
 )
+CARPETA_RESULTADOS = RUTA_RAIZ / "documentos" / "resultados"
+CARPETA_RESULTADOS_SENAL = CARPETA_RESULTADOS / "senal_digital"
+CARPETA_RESULTADOS_IMPRESO = CARPETA_RESULTADOS / "impreso_digitalizado"
 OBJETIVOS_ANTEPROYECTO = {"sensibilidad": 0.85, "especificidad": 0.80, "auc_roc": 0.90}
 
 
@@ -67,7 +70,8 @@ def parsear_argumentos() -> argparse.Namespace:
     parser.add_argument(
         "--carpeta-salida",
         type=Path,
-        default=RUTA_RAIZ / "documentos" / "resultados",
+        default=None,
+        help="Por defecto documentos/resultados/senal_digital o .../impreso_digitalizado",
     )
     return parser.parse_args()
 
@@ -102,6 +106,8 @@ def main() -> None:
     args = parsear_argumentos()
     if args.checkpoint is None:
         args.checkpoint = RUTA_CHECKPOINT_IMPRESO if args.formato_impreso else RUTA_CHECKPOINT_PREDETERMINADA
+    if args.carpeta_salida is None:
+        args.carpeta_salida = CARPETA_RESULTADOS_IMPRESO if args.formato_impreso else CARPETA_RESULTADOS_SENAL
     sufijo = "_impreso" if args.formato_impreso else ""
     dispositivo = seleccionar_dispositivo()
     carpeta_procesado = RUTA_RAIZ / "dataset" / "procesado" / f"frecuencia_{args.frecuencia}"

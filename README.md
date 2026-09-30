@@ -21,7 +21,7 @@ Para que el clon sea liviano, **no** se suben:
 | `dataset/crudo/` (PTB-XL ~3 GB) | Muy pesado | Descargar de PhysioNet |
 | `dataset/procesado/` (~1 GB) | Generado | Ejecutar script de preprocesamiento |
 | `.venv/` | Entorno local | Crear venv e instalar `requisitos.txt` |
-| `*.pt` / checkpoints | Modelos entrenados | Pedir `mejor.pt` al equipo y copiarlo a `modelo_ia/puntos_control/resnet1d_estandar_100hz/` (o entrenar con GPU) |
+| `*.pt` / checkpoints | Modelos entrenados (33 MB c/u) | Pedir al equipo las carpetas `resnet1d_estandar_100hz/` y `resnet1d_estandar_impreso_digitalizado_100hz/` y copiarlas a `modelo_ia/puntos_control/` (o entrenar con GPU) |
 | `.env` | Secretos | Copiar desde `.env.ejemplo` |
 
 Sí se incluyen: código, scripts, metadatos ligeros, esquema SQL y la web beta.
@@ -38,8 +38,8 @@ El análisis de archivos en vivo sigue requiriendo el servidor local.
 > GitHub Pages solo aloja la página estática. No ejecuta Python/PyTorch en la nube.
 
 ```powershell
-git clone https://github.com/USUARIO/NOMBRE-DEL-REPO.git
-cd "NOMBRE-DEL-REPO"
+git clone https://github.com/AlejandrooNM/Residencia2026.git
+cd Residencia2026
 
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -84,7 +84,7 @@ Abrir: http://127.0.0.1:8000
   CSV; si no hay metadatos se estima entre 100/250/500/1000 Hz a partir de la frecuencia cardiaca y
   la anchura del QRS. En el fold 10 de PTB-XL acierta en el 95.6 % de 3 600 pruebas (7, 10 y 20 s)
   y avisa cuando la estimación es dudosa (`scripts/evaluar_estimacion_frecuencia.py`, resultados en
-  `documentos/resultados/estimacion_frecuencia.txt`).
+  `documentos/resultados/senal_digital/estimacion_frecuencia.txt`).
 - **ECG impreso (PDF, escaneo o foto)**: `.pdf`, `.png` o `.jpg` de la hoja completa en formato
   3 × 4 a 25 mm/s y 10 mm/mV, con 0 a 3 tiras de ritmo. El sistema detecta la cuadrícula
   milimétrica para calibrar, corrige perspectiva e inclinación, sigue el trazo de cada fila y
@@ -152,10 +152,18 @@ python scripts/evaluar_modelo.py
 
 Elige el umbral en validación (fold 9) con la mayor especificidad que alcance
 sensibilidad ≥ 0.85, lo aplica sin reajustar al conjunto de prueba (fold 10) y guarda en
-`documentos/resultados/` las métricas con IC 95 % (bootstrap), la curva ROC, la curva
-precisión-sensibilidad y la matriz de confusión.
+`documentos/resultados/senal_digital/` las métricas con IC 95 % (bootstrap), la curva ROC, la
+curva precisión-sensibilidad y la matriz de confusión.
 Con `--formato-impreso` evalúa el modelo para ECG impresos sobre la vista 3 × 4 de la señal
-(archivos `*_impreso` en la misma carpeta).
+(archivos `*_impreso` en `documentos/resultados/impreso_digitalizado/`).
+
+`documentos/resultados/` tiene una carpeta por modelo:
+
+| Carpeta | Modelo |
+|---------|--------|
+| `senal_digital/` | Señal digital (`.hea`/`.dat`, CSV, NPY); incluye la evaluación de la estimación de frecuencia |
+| `impreso_digitalizado/` | ECG impresos, el que usa la aplicación |
+| `impreso_sin_ajuste/` | ECG impresos antes del ajuste con documentos digitalizados (referencia) |
 
 ## Digitalización de ECG impresos
 
@@ -203,7 +211,7 @@ diferencia es el costo de digitalizar, que se nota sobre todo en las fotos.
 Con los mismos documentos, el modelo sin este ajuste (punto de corte 0.4303) obtenía
 especificidad 0.787 / 0.782 / 0.771 / 0.728 y sensibilidad 0.939 / 0.930 / 0.921 / 0.946.
 Detalle e IC 95 % en `documentos/resultados/impreso_digitalizado/digitalizacion_extremo_a_extremo.json`
-(modelo anterior: `documentos/resultados/digitalizacion_extremo_a_extremo.json`).
+(modelo anterior: `documentos/resultados/impreso_sin_ajuste/`).
 
 Limitaciones: validado con hojas generadas a partir de PTB-XL, no con impresiones de
 electrocardiógrafos reales; requiere formato 3 × 4 a 25 mm/s y 10 mm/mV con el orden estándar
@@ -215,15 +223,26 @@ para compararla con la hoja.
 ## Estructura del proyecto
 
 ```
-├── backend/              # API (FastAPI) y lógica de negocio
-├── frontend/             # Interfaz web
-├── modelo_ia/            # Arquitectura, entrenamiento, Grad-CAM y checkpoints
-├── dataset/              # Datos crudos, procesados, metadatos y ejemplos
-├── base_de_datos/        # Esquemas SQL, migraciones y respaldos
-├── cargas/               # Archivos ECG subidos por la interfaz
-├── documentos/           # Documentación técnica e informes
-└── scripts/              # Utilidades de descarga, preparación y despliegue
+├── backend/aplicacion/   # API (FastAPI): rutas, servicios, esquemas y lectura de archivos
+├── frontend/             # Interfaz web (HTML, CSS y JavaScript) y demos precargadas
+├── modelo_ia/
+│   ├── arquitectura/     # ResNet1D
+│   ├── preprocesamiento/ # Filtrado, normalización y estimación de frecuencia
+│   ├── entrenamiento/    # Datos, aumento y ciclo de entrenamiento
+│   ├── evaluacion/       # Umbral, intervalos de confianza y gráficas
+│   ├── explicabilidad/   # Grad-CAM y zonas Q/ST/T
+│   ├── digitalizacion/   # PDF/foto → señal de 12 derivaciones
+│   └── puntos_control/   # Modelos entrenados (no se suben)
+├── dataset/              # Crudo y procesado (no se suben), metadatos y ejemplos para probar
+├── base_de_datos/        # Esquema SQL, migraciones y respaldos
+├── cargas/               # Archivos ECG subidos por la interfaz (no se suben)
+├── documentos/           # Resultados por modelo y comparación con la literatura
+└── scripts/              # Preparar datos, entrenar, evaluar, exportar demos y levantar la web
 ```
+
+Scripts auxiliares: `exportar_ejemplos_ecg.py` regenera los ECG de `dataset/ejemplos/`,
+`exportar_demos_estaticas.py` los casos de «Ver ejemplo» y `exportar_red_neuronal.py` los datos
+de la vista de la red neuronal (en la página, escribir «cerebro»).
 
 ## Stack tecnológico
 
@@ -248,7 +267,7 @@ ResNet1D variante `estandar`, 100 Hz, entrenada con aumento de datos; 2 198 ECG 
 El modelo para ECG impresos, sobre la vista 3 × 4 de los mismos 2 198 ECG (umbral 0.3347),
 obtiene sensibilidad 0.858 (0.828 – 0.885), especificidad 0.843 (0.825 – 0.860) y AUC 0.928
 (0.916 – 0.940); con documentos digitalizados, ver la tabla de la sección anterior.
-Detalle en `documentos/resultados/metricas_prueba.json` y comparación con otros trabajos en
+Detalle en `documentos/resultados/senal_digital/metricas_prueba.json` y comparación con otros trabajos en
 `documentos/comparacion_literatura.md`.
 
 ## Autores
