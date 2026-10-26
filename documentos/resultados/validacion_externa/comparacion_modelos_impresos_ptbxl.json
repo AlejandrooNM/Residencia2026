@@ -1,0 +1,45 @@
+{
+  "conjunto": "PTB-XL fold 10, vista 3 x 4 con tira de ritmo II",
+  "ecg": 2198,
+  "casos_iam": 550,
+  "impreso_digitalizado": {
+    "umbral": 0.3623,
+    "sensibilidad": 0.8436,
+    "especificidad": 0.8519,
+    "auc_roc": 0.9282,
+    "intervalos_confianza_95": {
+      "sensibilidad": [
+        0.8103,
+        0.8729
+      ],
+      "especificidad": [
+        0.8345,
+        0.8689
+      ],
+      "auc_roc": [
+        0.9156,
+        0.9398
+      ]
+    }
+  },
+  "impreso_hojas_reales": {
+    "umbral": 0.9494,
+    "sensibilidad": 0.5182,
+    "especificidad": 0.9448,
+    "auc_roc": 0.8621,
+    "intervalos_confianza_95": {
+      "sensibilidad": [
+        0.4773,
+        0.5611
+      ],
+      "especificidad": [
+        0.9341,
+        0.9547
+      ],
+      "auc_roc": [
+        0.843,
+        0.8789
+      ]
+    }
+  }
+}

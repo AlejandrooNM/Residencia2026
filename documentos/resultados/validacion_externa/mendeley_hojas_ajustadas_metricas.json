@@ -1,0 +1,75 @@
+{
+  "base": "ECG Images dataset of Cardiac Patients (Mendeley, Pakistán)",
+  "fecha": "2026-10-25T19:07:20",
+  "procedimiento": "Ajuste fino por pliegues sobre las hojas reales. La métrica de infarto frente a normal es fuera de pliegue: cada hoja se clasifica con un modelo que no la vio. El antecedente de infarto solo entra al entrenamiento.",
+  "umbral": 0.9494,
+  "umbrales_de_pliegue": [
+    0.9494,
+    0.9942,
+    0.9459,
+    0.9803,
+    0.9042
+  ],
+  "epocas_por_pliegue": [
+    9,
+    20,
+    12,
+    24,
+    7
+  ],
+  "checkpoint": "E:\\Residencia2026\\Proyecto\\modelo_ia\\puntos_control\\resnet1d_estandar_impreso_hojas_reales_100hz\\mejor.pt",
+  "sin_ajuste": {
+    "umbral": 0.3623,
+    "infarto_frente_a_normal": {
+      "ecg": 523,
+      "casos_iam": 239,
+      "sensibilidad": 0.8996,
+      "especificidad": 0.7746,
+      "auc_roc": 0.8988,
+      "vp": 215,
+      "fp": 64,
+      "fn": 24,
+      "vn": 220,
+      "intervalos_confianza_95": {
+        "sensibilidad": [
+          0.8606,
+          0.9362
+        ],
+        "especificidad": [
+          0.7276,
+          0.8235
+        ],
+        "auc_roc": [
+          0.8717,
+          0.9279
+        ]
+      }
+    }
+  },
+  "infarto_frente_a_normal": {
+    "ecg": 523,
+    "casos_iam": 239,
+    "sensibilidad": 0.9331,
+    "especificidad": 0.9859,
+    "auc_roc": 0.9926,
+    "vp": 223,
+    "fp": 4,
+    "fn": 16,
+    "vn": 280,
+    "intervalos_confianza_95": {
+      "sensibilidad": [
+        0.9013,
+        0.9633
+      ],
+      "especificidad": [
+        0.9702,
+        0.9966
+      ],
+      "auc_roc": [
+        0.9837,
+        0.9991
+      ]
+    }
+  },
+  "auc_proxy_ptbxl_impreso": 0.8531
+}

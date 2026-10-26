@@ -41,14 +41,12 @@ class Configuracion(BaseSettings):
     # Elegido en validación (fold 9) para sensibilidad >= 0.85; ver scripts/evaluar_modelo.py
     umbral_clasificacion: float = 0.3204
 
-    # Modelo para ECG impresos (PDF, escaneo, foto) en formato 3 x 4, ajustado con
-    # documentos sintéticos digitalizados (scripts/generar_digitalizados.py)
+    # ECG impresos ajustado a hojas reales de Mendeley (scripts/ajustar_hojas_reales.py).
+    # El corte es la mediana de los pliegues, con sensibilidad mínima 0.85.
     ruta_checkpoint_impreso: Path = Path(
-        "./modelo_ia/puntos_control/resnet1d_estandar_impreso_digitalizado_100hz/mejor.pt"
+        "./modelo_ia/puntos_control/resnet1d_estandar_impreso_hojas_reales_100hz/mejor.pt"
     )
-    # Mismo criterio con documentos digitalizados de validación (PDF, imagen, escaneo y
-    # foto); ver scripts/evaluar_digitalizacion.py --conjunto validacion
-    umbral_clasificacion_impreso: float = 0.3623
+    umbral_clasificacion_impreso: float = 0.9494
     tamano_maximo_carga_mb: int = 20
 
     origenes_permitidos: list[str] = [

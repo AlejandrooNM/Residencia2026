@@ -1,0 +1,87 @@
+{
+  "umbral": 0.3204,
+  "subtipos_iam": {
+    "IMI": {
+      "n": 267,
+      "sensibilidad": 0.843
+    },
+    "ASMI": {
+      "n": 234,
+      "sensibilidad": 0.923
+    },
+    "ILMI": {
+      "n": 48,
+      "sensibilidad": 0.938
+    },
+    "AMI": {
+      "n": 35,
+      "sensibilidad": 0.771
+    },
+    "ALMI": {
+      "n": 27,
+      "sensibilidad": 0.593
+    },
+    "INJAS": {
+      "n": 22,
+      "sensibilidad": 0.955
+    },
+    "LMI": {
+      "n": 20,
+      "sensibilidad": 0.55
+    },
+    "INJAL": {
+      "n": 14,
+      "sensibilidad": 1.0
+    }
+  },
+  "negativos_por_superclase": {
+    "solo NORM": {
+      "n": 912,
+      "especificidad": 0.932
+    },
+    "STTC": {
+      "n": 382,
+      "especificidad": 0.73
+    },
+    "CD": {
+      "n": 321,
+      "especificidad": 0.667
+    },
+    "HYP": {
+      "n": 183,
+      "especificidad": 0.683
+    }
+  },
+  "por_sexo": {
+    "hombres": {
+      "n": 1132,
+      "sensibilidad": 0.862,
+      "especificidad": 0.844
+    },
+    "mujeres": {
+      "n": 1066,
+      "sensibilidad": 0.814,
+      "especificidad": 0.841
+    }
+  },
+  "por_edad": {
+    "<50": {
+      "n": 521,
+      "con_iam": 38,
+      "sensibilidad": 0.763,
+      "especificidad": 0.959
+    },
+    "50-69": {
+      "n": 885,
+      "con_iam": 195,
+      "sensibilidad": 0.821,
+      "especificidad": 0.835
+    },
+    ">=70": {
+      "n": 758,
+      "con_iam": 302,
+      "sensibilidad": 0.858,
+      "especificidad": 0.75
+    }
+  }
+}
