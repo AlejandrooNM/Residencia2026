@@ -2,6 +2,19 @@
   "conjunto": "PTB-XL fold 10, vista 3 x 4 con tira de ritmo II",
   "ecg": 2198,
   "casos_iam": 550,
+  "senales_digitalizadas": {
+    "modelo": "impreso_digitalizado",
+    "nota": "Usan el modelo anterior y por eso conservan sus métricas.",
+    "umbral": 0.3623,
+    "sensibilidad": 0.8436,
+    "especificidad": 0.8519,
+    "auc_roc": 0.9282,
+    "intervalos_confianza_95": {
+      "sensibilidad": [0.8103, 0.8729],
+      "especificidad": [0.8345, 0.8689],
+      "auc_roc": [0.9156, 0.9398]
+    }
+  },
   "impreso_digitalizado": {
     "umbral": 0.3623,
     "sensibilidad": 0.8436,

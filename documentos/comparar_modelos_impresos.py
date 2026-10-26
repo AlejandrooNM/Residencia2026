@@ -48,6 +48,11 @@ def main() -> None:
             "intervalos_confianza_95": {k: v.a_lista() for k, v in ic.items()},
         }
         print(nombre, resultado[nombre])
+    resultado["senales_digitalizadas"] = {
+        "modelo": "impreso_digitalizado",
+        "nota": "Usan el modelo anterior y por eso conservan sus métricas.",
+        **resultado["impreso_digitalizado"],
+    }
     SALIDA.write_text(json.dumps(resultado, indent=2, ensure_ascii=False), encoding="utf-8")
 
 

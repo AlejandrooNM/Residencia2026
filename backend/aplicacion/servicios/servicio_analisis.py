@@ -10,6 +10,8 @@ En ambos casos: ResNet1D + Grad-CAM -> decisión con el umbral calibrado en vali
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 
 from aplicacion.esquemas.analisis import (
@@ -24,6 +26,7 @@ from aplicacion.servicios.constructor_visualizacion import construir_visualizaci
 from aplicacion.servicios.proveedor_modelo import (
     ProveedorModelo,
     obtener_proveedor_modelo,
+    obtener_proveedor_modelo_digitalizado,
     obtener_proveedor_modelo_impreso,
 )
 from aplicacion.utilidades.lectores_ecg import leer_archivos_ecg
@@ -41,6 +44,9 @@ AVISO_CLINICO = "Resultado de apoyo; debe confirmarlo un médico."
 NOMBRES_ZONA = {"necrosis": "necrosis (onda Q)", "lesion": "lesión (ST)", "isquemia": "isquemia (onda T)"}
 ORIGEN_FRECUENCIA_PAPEL = "papel"
 DERIVACIONES_VISIBLES_WEB = 12
+# Las fotos de papel usan el modelo de hojas reales. PDF y demás imágenes
+# son la señal digitalizada y conservan el modelo anterior.
+EXTENSIONES_HOJA_REAL = {".jpg", ".jpeg"}
 
 
 class ServicioAnalisis:
@@ -60,6 +66,8 @@ class ServicioAnalisis:
         self._umbral_impreso = (
             umbral_impreso if umbral_impreso is not None else configuracion.umbral_clasificacion_impreso
         )
+        self._proveedor_digitalizado = obtener_proveedor_modelo_digitalizado()
+        self._umbral_digitalizado = configuracion.umbral_clasificacion_digitalizado
 
     def analizar(
         self,
@@ -112,15 +120,16 @@ class ServicioAnalisis:
 
     def _analizar_impreso(self, archivos: dict[str, bytes]) -> ResultadoAnalisis:
         nombre, contenido = next(iter(archivos.items()))
+        proveedor, umbral = self._modelo_de_documento(nombre)
         digitalizado = digitalizar_documento(contenido, nombre)
         mascara_visible = np.isfinite(digitalizado.senal).T
         visualizacion = construir_visualizacion(
             senal=preparar_senal_impresa(digitalizado.senal),
-            proveedor=self._proveedor_impreso,
+            proveedor=proveedor,
             origen="carga_usuario",
             mensaje="",
             max_derivaciones=DERIVACIONES_VISIBLES_WEB,
-            umbral_decision=self._umbral_impreso,
+            umbral_decision=umbral,
             mascara_visible=mascara_visible,
             senal_dibujo=np.asarray(digitalizado.senal, dtype=np.float32).T,
             escala_comun_mv=True,
@@ -128,7 +137,7 @@ class ServicioAnalisis:
         return self._armar_resultado(
             archivos,
             visualizacion,
-            self._umbral_impreso,
+            umbral,
             tipo_entrada=TipoEntrada.DOCUMENTO_IMPRESO,
             frecuencia_original=None,
             origen_frecuencia=ORIGEN_FRECUENCIA_PAPEL,
@@ -173,6 +182,12 @@ class ServicioAnalisis:
             visualizacion=visualizacion,
             **datos_entrada,
         )
+
+    def _modelo_de_documento(self, nombre: str) -> tuple[ProveedorModelo, float]:
+        """JPG de una hoja real usa el modelo ajustado; el resto, el de señales digitalizadas."""
+        if Path(nombre).suffix.lower() in EXTENSIONES_HOJA_REAL:
+            return self._proveedor_impreso, self._umbral_impreso
+        return self._proveedor_digitalizado, self._umbral_digitalizado
 
     @staticmethod
     def _frecuencia_cardiaca_impresa(digitalizado: EcgDigitalizado) -> float | None:

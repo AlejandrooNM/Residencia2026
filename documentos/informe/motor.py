@@ -62,11 +62,11 @@ class Informe:
 
     def _configurar(self) -> None:
         seccion = self.doc.sections[0]
-        seccion.page_width = Cm(21.59)
-        seccion.page_height = Cm(27.94)
+        seccion.page_width = Cm(21.0)
+        seccion.page_height = Cm(29.7)
         seccion.top_margin = Cm(2.5)
         seccion.bottom_margin = Cm(2.5)
-        seccion.left_margin = Cm(3.0)
+        seccion.left_margin = Cm(2.5)
         seccion.right_margin = Cm(2.5)
         seccion.different_first_page_header_footer = True
 
@@ -84,18 +84,18 @@ class Informe:
         normal.paragraph_format.space_after = Pt(6)
 
         for nombre, tamano, antes, despues in (
-            ("Heading 1", 16, 0, 18),
-            ("Heading 2", 14, 18, 8),
-            ("Heading 3", 12, 12, 6),
+            ("Heading 1", 14, 0, 6),
+            ("Heading 2", 14, 12, 6),
+            ("Heading 3", 12, 10, 4),
         ):
             estilo = estilos[nombre]
-            _fijar_fuente(estilo, tamano, negrita=True, color=(0x1F, 0x1F, 0x1F))
+            _fijar_fuente(estilo, tamano, negrita=True)
             formato = estilo.paragraph_format
             formato.space_before = Pt(antes)
             formato.space_after = Pt(despues)
             formato.keep_with_next = True
-            formato.line_spacing_rule = WD_LINE_SPACING.SINGLE
-        estilos["Heading 1"].paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            formato.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            formato.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
 
         for nombre in (ESTILO_FIGURA, ESTILO_TABLA):
             estilo = estilos.add_style(nombre, WD_STYLE_TYPE.PARAGRAPH)
@@ -124,7 +124,7 @@ class Informe:
         configuracion.append(actualizar)
 
     # ------------------------------------------------------------------ texto
-    def _runs(self, parrafo, texto: str, tamano: float = 12, cursiva: bool = False) -> None:
+    def _runs(self, parrafo, texto: str, tamano: float = 12, cursiva: bool = False, fuente: str = FUENTE) -> None:
         """Agrega texto; los fragmentos entre ** van en negritas."""
         for indice, trozo in enumerate(texto.split("**")):
             if not trozo:
@@ -132,10 +132,20 @@ class Informe:
             run = parrafo.add_run(trozo)
             run.bold = indice % 2 == 1
             run.italic = cursiva
-            run.font.name = FUENTE
+            run.font.name = fuente
+            run._r.get_or_add_rPr().get_or_add_rFonts().set(qn("w:cs"), fuente)
             run.font.size = Pt(tamano)
 
-    def parrafo(self, texto, sangria=True, alineacion=WD_ALIGN_PARAGRAPH.JUSTIFY, tamano=12,
+    def _leyenda(self, parrafo, etiqueta: str, texto: str) -> None:
+        """Leyenda con la etiqueta en negritas y el texto en cursiva, como en el borrador."""
+        run = parrafo.add_run(f"{etiqueta} ")
+        run.bold = True
+        run.italic = False
+        run.font.name = FUENTE
+        run.font.size = Pt(11)
+        self._runs(parrafo, texto, tamano=11, cursiva=True)
+
+    def parrafo(self, texto, sangria=False, alineacion=WD_ALIGN_PARAGRAPH.JUSTIFY, tamano=12,
                 cursiva=False, despues=6):
         p = self.doc.add_paragraph()
         p.alignment = alineacion
@@ -145,12 +155,30 @@ class Informe:
         self._runs(p, texto, tamano, cursiva)
         return p
 
-    def centrado(self, texto, tamano=12, negrita=False, despues=4):
+    def centrado(self, texto, tamano=12, negrita=False, despues=4, alineacion=WD_ALIGN_PARAGRAPH.CENTER,
+                 fuente=FUENTE):
+        p = self.doc.add_paragraph()
+        p.alignment = alineacion
+        p.paragraph_format.space_after = Pt(despues)
+        p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        self._runs(p, f"**{texto}**" if negrita and texto else texto, tamano, fuente=fuente)
+        return p
+
+    def extremos(self, izquierda, derecha, tamano=12, fuente="Arial", despues=4):
+        """Una línea con texto pegado al margen izquierdo y otro al derecho."""
+        p = self.doc.add_paragraph()
+        p.paragraph_format.space_after = Pt(despues)
+        p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        ancho = self.doc.sections[0].page_width - self.doc.sections[0].left_margin - self.doc.sections[0].right_margin
+        p.paragraph_format.tab_stops.add_tab_stop(ancho, alignment=2)
+        self._runs(p, f"{izquierda}\t{derecha}", tamano, fuente=fuente)
+        return p
+
+    def imagen_centrada(self, nombre, ancho_cm, despues=6):
         p = self.doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_after = Pt(despues)
-        p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-        self._runs(p, f"**{texto}**" if negrita and texto else texto, tamano)
+        p.add_run().add_picture(str(self._ruta_imagen(nombre)), width=Cm(ancho_cm))
         return p
 
     def vineta(self, texto, nivel=0):
@@ -201,11 +229,10 @@ class Informe:
         return self.doc.add_heading(texto, level=nivel)
 
     def titulo_sin_indice(self, texto):
-        """Título con aspecto de capítulo que no aparece en el índice (portadas de índices)."""
+        """Título con aspecto de capítulo que no aparece en el índice (páginas de índices)."""
         if len(self.doc.paragraphs) > 1:
             self.salto()
-        p = self.centrado(texto, tamano=16, negrita=True, despues=18)
-        return p
+        return self.centrado(texto, tamano=14, negrita=True, despues=12, alineacion=WD_ALIGN_PARAGRAPH.LEFT)
 
     def salto(self):
         self.doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
@@ -231,9 +258,9 @@ class Informe:
         p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
         if ruta is None:
             raise FileNotFoundError(f"No se encontró la imagen {nombre}")
-        p.add_run().add_picture(str(ruta), width=Inches(ancho))
+        p.add_run().add_picture(str(ruta), width=Inches(min(ancho, 6.2)))
         pie = self.doc.add_paragraph(style=ESTILO_FIGURA)
-        self._runs(pie, f"Figura {self.figuras}. {leyenda}", tamano=11, cursiva=True)
+        self._leyenda(pie, f"Figura {self.figuras}.", leyenda)
         return self.figuras
 
     def figura_pendiente(self, leyenda, indicacion):
@@ -253,13 +280,13 @@ class Informe:
             p.add_run().add_break()
         pie = self.doc.add_paragraph(style=ESTILO_FIGURA)
         pie.paragraph_format.space_before = Pt(4)
-        self._runs(pie, f"Figura {self.figuras}. {leyenda}", tamano=11, cursiva=True)
+        self._leyenda(pie, f"Figura {self.figuras}.", leyenda)
         return self.figuras
 
     def tabla(self, leyenda, encabezados, filas, anchos=None, tamano=10):
         self.tablas += 1
         cabeza = self.doc.add_paragraph(style=ESTILO_TABLA)
-        self._runs(cabeza, f"Tabla {self.tablas}. {leyenda}", tamano=11, cursiva=True)
+        self._leyenda(cabeza, f"Tabla {self.tablas}.", leyenda)
 
         t = self.doc.add_table(rows=1, cols=len(encabezados))
         t.style = "Table Grid"
@@ -319,10 +346,15 @@ class Informe:
             tipo, *datos = bloque
             if tipo == "h1":
                 self.titulo(datos[0], 1)
+            elif tipo == "h1n":
+                self.titulo(datos[0], 1, nueva_pagina=False)
             elif tipo == "h2":
                 self.titulo(datos[0], 2)
             elif tipo == "h3":
                 self.titulo(datos[0], 3)
+            elif tipo == "sub":
+                p = self.parrafo(f"**{datos[0]}**", despues=2)
+                p.paragraph_format.keep_with_next = True
             elif tipo == "p":
                 self.parrafo(datos[0])
             elif tipo == "ps":
