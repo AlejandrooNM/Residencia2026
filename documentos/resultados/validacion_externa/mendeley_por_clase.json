@@ -1,0 +1,40 @@
+{
+  "hojas": 928,
+  "cobertura_mediana": 1.0,
+  "concordancia_mediana": 0.996,
+  "tira_ritmo": {
+    "II": 717,
+    "III": 182,
+    "aVF": 18,
+    "V6": 10,
+    "V3": 1
+  },
+  "impreso_digitalizado": {
+    "umbral": 0.3623,
+    "marcadas_por_clase": {
+      "antecedente_infarto": 0.93,
+      "infarto": 0.9,
+      "latido_anormal": 0.485,
+      "normal": 0.225
+    },
+    "infarto_y_antecedente_frente_al_resto": {
+      "sensibilidad": 0.912,
+      "especificidad": 0.658,
+      "auc_roc": 0.874
+    }
+  },
+  "impreso_hojas_reales": {
+    "umbral": 0.9494,
+    "marcadas_por_clase": {
+      "antecedente_infarto": 0.942,
+      "infarto": 1.0,
+      "latido_anormal": 0.305,
+      "normal": 0.014
+    },
+    "infarto_y_antecedente_frente_al_resto": {
+      "sensibilidad": 0.976,
+      "especificidad": 0.855,
+      "auc_roc": 0.948
+    }
+  }
+}

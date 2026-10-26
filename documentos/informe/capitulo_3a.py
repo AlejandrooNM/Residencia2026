@@ -66,6 +66,7 @@ BLOQUES = [
       ["29 de septiembre", "Limpieza del proyecto, resultados separados por modelo, vista oculta de la red y descarga de bases externas"],
       ["30 de septiembre", "Validación externa en las bases de Georgia, SPH, PTB y Mendeley"],
       ["25 de octubre", "Alineación del ECG impreso con la hoja y experimentos de entrenamiento por épocas completas"],
+      ["25 de octubre (tarde)", "Ajuste del modelo de impresos con las 928 fotografías reales de Mendeley; la aplicación pasa a usar ese modelo para fotografías JPG y conserva el anterior para PDF y PNG"],
       ["Noviembre de 2026", "Redacción del informe técnico y preparación de la entrega"]],
      [3.5, 11.5]),
     ("h3", "3.2.3 Organización del trabajo"),

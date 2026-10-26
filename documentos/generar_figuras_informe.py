@@ -305,17 +305,43 @@ def figuras_hoja_impresa() -> None:
     guardar(figura, "f_digitalizado_vs_original.png")
 
 
+def figura_hoja_real_digitalizada(archivo: str = "MI(10).jpg") -> None:
+    carpeta = RAIZ / "dataset" / "procesado" / "mendeley_hojas"
+    hojas = np.genfromtxt(carpeta / "hojas.csv", delimiter=",", names=True, dtype=None, encoding="utf-8",
+                          usecols=("archivo", "indice_senal"))
+    indice = int(next(fila["indice_senal"] for fila in hojas if fila["archivo"] == archivo))
+    senal = np.load(carpeta / "senales.npy", mmap_mode="r")[indice]
+    tiempo = np.arange(senal.shape[1]) / 100
+    figura, eje = plt.subplots(figsize=(9, 7))
+    for posicion, derivacion in enumerate(senal):
+        visible = np.where(derivacion == 0, np.nan, derivacion)
+        eje.plot(tiempo, visible / 4 - posicion, color=ROJO, lw=0.7)
+    for columna in (2.5, 5.0, 7.5):
+        eje.axvline(columna, color=GRIS, lw=0.6, ls="--")
+    eje.set_yticks([-i for i in range(12)])
+    eje.set_yticklabels(NOMBRES_DERIVACIONES)
+    eje.set_xlabel("Tiempo (segundos)")
+    eje.set_title(f"Señal que recupera el digitalizador de la fotografía real {archivo} (grupo infarto)", fontsize=10)
+    figura.tight_layout()
+    guardar(figura, "f_hoja_real_digitalizada.png")
+
+
 def figura_validacion_externa() -> None:
     externos = RESULTADOS / "validacion_externa"
     sph = leer_json(externos / "sph_metricas.json")
     ptb = leer_json(externos / "ptb_metricas.json")
-    mendeley = leer_json(externos / "mendeley_impresos_metricas.json")["infarto_frente_a_normal"]
-    bases = ["PTB-XL\n(prueba)", "SPH\n(China)", "PTB Diagnostic\n(Alemania)", "Mendeley\n(hojas reales)"]
-    sensibilidad = [0.840, sph["sensibilidad"], ptb["sensibilidad"], mendeley["sensibilidad"]]
-    especificidad = [0.843, sph["especificidad"], ptb["especificidad"], mendeley["especificidad"]]
-    auc = [0.925, sph["auc_roc"], ptb["auc_roc"], mendeley["auc_roc"]]
+    ajuste = leer_json(externos / "mendeley_hojas_ajustadas_metricas.json")
+    previo = ajuste["sin_ajuste"]["infarto_frente_a_normal"]
+    ajustado = ajuste["infarto_frente_a_normal"]
+    bases = [
+        "PTB-XL\n(prueba)", "SPH\n(China)", "PTB Diagnostic\n(Alemania)",
+        "Mendeley\nmodelo etapa 2", "Mendeley\nhojas reales*",
+    ]
+    sensibilidad = [0.840, sph["sensibilidad"], ptb["sensibilidad"], previo["sensibilidad"], ajustado["sensibilidad"]]
+    especificidad = [0.843, sph["especificidad"], ptb["especificidad"], previo["especificidad"], ajustado["especificidad"]]
+    auc = [0.925, sph["auc_roc"], ptb["auc_roc"], previo["auc_roc"], ajustado["auc_roc"]]
     posiciones = np.arange(len(bases))
-    figura, eje = plt.subplots(figsize=(9, 4))
+    figura, eje = plt.subplots(figsize=(10, 4))
     for desplazamiento, valores, color, nombre in (
         (-0.27, sensibilidad, ROJO, "Sensibilidad"),
         (0.0, especificidad, VERDE, "Especificidad"),
@@ -328,7 +354,9 @@ def figura_validacion_externa() -> None:
     eje.set_xticklabels(bases)
     eje.set_ylim(0, 1.1)
     eje.legend(frameon=False, fontsize=8, ncol=3, loc="upper center")
-    eje.set_title("Desempeño en la base original y en bases de otros países, con el mismo punto de corte", fontsize=10)
+    eje.set_title("Desempeño en la base original y en bases de otros países", fontsize=10)
+    eje.text(0.99, -0.2, "* Medición fuera de pliegue: cada hoja la califica un modelo que no la vio.",
+             transform=eje.transAxes, ha="right", fontsize=7)
     figura.tight_layout()
     guardar(figura, "f_validacion_externa.png")
 
@@ -337,7 +365,12 @@ def figura_grupos_externos() -> None:
     externos = RESULTADOS / "validacion_externa"
     sph = leer_json(externos / "sph_metricas.json")["por_grupo"]
     georgia = leer_json(externos / "georgia_metricas.json")["por_grupo"]
-    mendeley = leer_json(externos / "mendeley_impresos_metricas.json")["por_clase"]
+    por_clase = leer_json(externos / "mendeley_por_clase.json")
+    mendeley = {
+        clase: {"marcadas_como_iam": valor}
+        for clase, valor in por_clase["impreso_digitalizado"]["marcadas_por_clase"].items()
+    }
+    latido_hojas_reales = por_clase["impreso_hojas_reales"]["marcadas_por_clase"]["latido_anormal"]
     filas = [
         ("SPH · normal", sph["normal"]["marcados_como_iam"]),
         ("SPH · otras alteraciones", sph["otras alteraciones"]["marcados_como_iam"]),
@@ -351,6 +384,7 @@ def figura_grupos_externos() -> None:
         ("Mendeley · latido anormal", mendeley["latido_anormal"]["marcadas_como_iam"]),
         ("Mendeley · antecedente de infarto", mendeley["antecedente_infarto"]["marcadas_como_iam"]),
         ("Mendeley · infarto", mendeley["infarto"]["marcadas_como_iam"]),
+        ("Mendeley · latido anormal (modelo de hojas reales)", latido_hojas_reales),
     ]
     nombres = [fila[0] for fila in filas][::-1]
     valores = [fila[1] * 100 for fila in filas][::-1]
@@ -537,6 +571,7 @@ def main() -> None:
     figura_grad_cam(modelo)
     figura_formato_3x4()
     figuras_hoja_impresa()
+    figura_hoja_real_digitalizada()
     figura_validacion_externa()
     figura_grupos_externos()
     figura_formatos_impresos()

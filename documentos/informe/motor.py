@@ -32,6 +32,8 @@ def _fijar_fuente(estilo, tamano, negrita=False, cursiva=False, color=(0, 0, 0))
     fuentes = rpr.get_or_add_rFonts()
     for atributo in ("w:ascii", "w:hAnsi", "w:cs", "w:eastAsia"):
         fuentes.set(qn(atributo), FUENTE)
+    for atributo in ("w:asciiTheme", "w:hAnsiTheme", "w:cstheme", "w:eastAsiaTheme"):
+        fuentes.attrib.pop(qn(atributo), None)
 
 
 def _campo(parrafo, instruccion: str, texto_previo: str = "") -> None:
@@ -210,6 +212,15 @@ class Informe:
         self._runs(p, f"**{termino}.** {texto}")
         return p
 
+    def referencia(self, texto):
+        p = self.doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        p.paragraph_format.left_indent = Cm(1.27)
+        p.paragraph_format.first_line_indent = Cm(-1.27)
+        p.paragraph_format.space_after = Pt(6)
+        self._runs(p, texto)
+        return p
+
     def codigo(self, texto):
         for linea in texto.strip("\n").split("\n"):
             p = self.doc.add_paragraph()
@@ -371,6 +382,8 @@ class Informe:
                 self.definicion(datos[0], datos[1])
             elif tipo == "codigo":
                 self.codigo(datos[0])
+            elif tipo == "ref":
+                self.referencia(datos[0])
             elif tipo == "fig":
                 self.figura(*datos)
             elif tipo == "figph":
