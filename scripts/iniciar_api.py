@@ -69,11 +69,13 @@ def main() -> None:
     print(f"Docs API:  http://127.0.0.1:{puerto}/docs")
     print("=" * 60)
 
+    vigilar_cambios = configuracion.es_desarrollo and not configuracion.modo_compartir
     uvicorn.run(
         "aplicacion.principal:aplicacion",
         host=host,
         port=puerto,
-        reload=configuracion.es_desarrollo and not configuracion.modo_compartir,
+        reload=vigilar_cambios,
+        reload_dirs=[str(raiz_backend), str(raiz_proyecto / "modelo_ia")] if vigilar_cambios else None,
     )
 
 

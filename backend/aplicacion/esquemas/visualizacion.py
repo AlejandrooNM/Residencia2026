@@ -26,6 +26,13 @@ class VisualizacionEcg(BaseModel):
     senales: list[list[float | None]] = Field(
         description="Lista de derivaciones; cada una es una serie temporal (null donde no hay trazo impreso)"
     )
+    escala_comun_mv: bool = Field(
+        default=False,
+        description=(
+            "Si es verdadero, las series están en milivoltios y deben compartir la misma escala "
+            "vertical, centrada en 0 mV, como en el papel (10 mm/mV)"
+        ),
+    )
     mapa_grad_cam: list[float]
     probabilidad_iam: float = Field(ge=0.0, le=1.0)
     umbral_decision: float | None = Field(

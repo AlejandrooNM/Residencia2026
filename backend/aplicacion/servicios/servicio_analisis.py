@@ -113,6 +113,7 @@ class ServicioAnalisis:
     def _analizar_impreso(self, archivos: dict[str, bytes]) -> ResultadoAnalisis:
         nombre, contenido = next(iter(archivos.items()))
         digitalizado = digitalizar_documento(contenido, nombre)
+        mascara_visible = np.isfinite(digitalizado.senal).T
         visualizacion = construir_visualizacion(
             senal=preparar_senal_impresa(digitalizado.senal),
             proveedor=self._proveedor_impreso,
@@ -120,7 +121,9 @@ class ServicioAnalisis:
             mensaje="",
             max_derivaciones=DERIVACIONES_VISIBLES_WEB,
             umbral_decision=self._umbral_impreso,
-            mascara_visible=np.isfinite(digitalizado.senal).T,
+            mascara_visible=mascara_visible,
+            senal_dibujo=np.asarray(digitalizado.senal, dtype=np.float32).T,
+            escala_comun_mv=True,
         )
         return self._armar_resultado(
             archivos,

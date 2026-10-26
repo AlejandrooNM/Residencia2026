@@ -22,11 +22,14 @@ from modelo_ia.entrenamiento.metricas import MetricasClinicas, calcular_metricas
 class ConfiguracionEntrenamiento:
     """Hiperparámetros del entrenamiento."""
 
-    epocas: int = 15
+    epocas: int = 40
     tamano_lote: int = 32
     tasa_aprendizaje: float = 1e-3
     peso_decaimiento: float = 1e-4
-    paciencia_early_stopping: int = 5
+    # Épocas seguidas sin mejorar el AUC antes de detener. El programador de la
+    # tasa de aprendizaje espera menos, para bajar el paso antes de rendirse.
+    paciencia_early_stopping: int = 15
+    paciencia_tasa_aprendizaje: int = 6
     umbral_clasificacion: float = 0.5
     num_workers: int = 0
     semilla: int = 42
@@ -63,7 +66,7 @@ class EntrenadorResNet1D:
             self.optimizador,
             mode="max",
             factor=0.5,
-            patience=2,
+            patience=configuracion.paciencia_tasa_aprendizaje,
         )
 
         self.historial: list[dict[str, Any]] = []

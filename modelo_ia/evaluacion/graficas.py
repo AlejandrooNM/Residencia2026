@@ -33,6 +33,7 @@ def guardar_curva_roc(
     probabilidades_iam: np.ndarray,
     umbral: float,
     ruta_salida: Path,
+    titulo: str = "Curva ROC - conjunto de prueba (PTB-XL, fold 10)",
 ) -> Path:
     """Curva ROC marcando el punto de operación del umbral elegido."""
     tasa_fp, tasa_vp, _ = roc_curve(etiquetas_reales, probabilidades_iam)
@@ -53,7 +54,7 @@ def guardar_curva_roc(
     )
     eje.set_xlabel("1 - Especificidad")
     eje.set_ylabel("Sensibilidad")
-    eje.set_title("Curva ROC - conjunto de prueba (PTB-XL, fold 10)")
+    eje.set_title(titulo)
     eje.legend(loc="lower right")
     eje.grid(alpha=0.3)
     return _guardar(figura, ruta_salida)

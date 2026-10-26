@@ -1,0 +1,43 @@
+{
+  "base": "Georgia 12-Lead ECG Challenge (EE. UU.)",
+  "fecha": "2026-09-30T02:17:59",
+  "umbral": 0.3204,
+  "ecg_evaluados": 10338,
+  "casos_iam": 7,
+  "prevalencia_iam": 0.0007,
+  "especificidad": 0.5861,
+  "especificidad_en_normales": 0.8395,
+  "vp": 6,
+  "fp": 4276,
+  "fn": 1,
+  "vn": 6055,
+  "por_grupo": {
+    "otras alteraciones": {
+      "ecg": 6898,
+      "marcados_como_iam": 0.4153,
+      "probabilidad_media": 0.3311
+    },
+    "normal": {
+      "ecg": 1751,
+      "marcados_como_iam": 0.1605,
+      "probabilidad_media": 0.1349
+    },
+    "isquemia": {
+      "ecg": 1586,
+      "marcados_como_iam": 0.6747,
+      "probabilidad_media": 0.5461
+    },
+    "onda Q anormal": {
+      "ecg": 96,
+      "marcados_como_iam": 0.625,
+      "probabilidad_media": 0.4963
+    },
+    "IAM": {
+      "ecg": 7,
+      "marcados_como_iam": 0.8571,
+      "probabilidad_media": 0.6809
+    }
+  },
+  "nota": "Solo 7 casos de IAM: sensibilidad y AUC no son interpretables; se reporta especificidad y la tasa de marcado por grupo.",
+  "descartados_senal_invalida": 6
+}

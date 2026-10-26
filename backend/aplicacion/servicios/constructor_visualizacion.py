@@ -32,6 +32,8 @@ def construir_visualizacion(
     etiqueta_real: str | None = None,
     umbral_decision: float | None = None,
     mascara_visible: np.ndarray | None = None,
+    senal_dibujo: np.ndarray | None = None,
+    escala_comun_mv: bool = False,
 ) -> VisualizacionEcg:
     """
     Ejecuta Grad-CAM sobre la clase IAM y empaqueta los datos para el navegador.
@@ -41,6 +43,10 @@ def construir_visualizacion(
         umbral_decision: probabilidad a partir de la cual se clasifica como IAM.
         mascara_visible: (12, 1000) True donde hay trazo (ECG impreso); lo no
             impreso se envía como null para dibujarlo como hueco.
+        senal_dibujo: serie que se grafica, con la misma forma que `senal`.
+            En un ECG impreso son los milivoltios digitalizados; el modelo sigue
+            recibiendo la señal normalizada.
+        escala_comun_mv: pide al navegador una sola escala en mV, centrada en cero.
     """
     with proveedor.candado:
         modelo = proveedor.obtener()
@@ -60,7 +66,8 @@ def construir_visualizacion(
     )
 
     numero_derivaciones = min(max_derivaciones, senal.shape[0], len(NOMBRES_DERIVACIONES))
-    senal_web = _series_para_web(senal[:numero_derivaciones], mascara_visible)
+    fuente_dibujo = senal if senal_dibujo is None else senal_dibujo
+    senal_web = _series_para_web(fuente_dibujo[:numero_derivaciones], mascara_visible)
     mapa_web = resultado.mapa_temporal[::PASO_SUBMUESTREO_WEB]
 
     return VisualizacionEcg(
@@ -72,6 +79,7 @@ def construir_visualizacion(
         muestras=len(senal_web[0]),
         duracion_segundos=senal.shape[1] / FRECUENCIA_MODELO,
         senales=senal_web,
+        escala_comun_mv=escala_comun_mv,
         mapa_grad_cam=np.round(mapa_web, 3).tolist(),
         probabilidad_iam=float(resultado.probabilidad_clase),
         umbral_decision=umbral_decision,
@@ -120,6 +128,9 @@ def _series_para_web(senal: np.ndarray, mascara_visible: np.ndarray | None) -> l
         return submuestreada.tolist()
     visible = mascara_visible[: senal.shape[0], ::PASO_SUBMUESTREO_WEB]
     return [
-        [float(valor) if es_visible else None for valor, es_visible in zip(fila, fila_visible)]
+        [
+            float(valor) if es_visible and np.isfinite(valor) else None
+            for valor, es_visible in zip(fila, fila_visible)
+        ]
         for fila, fila_visible in zip(submuestreada, visible)
     ]

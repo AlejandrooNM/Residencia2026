@@ -52,6 +52,13 @@ class ExplicadorGradCam1D:
                 )
             capa_objetivo = modelo.capa_objetivo_grad_cam
 
+        # La convolución guardada en el modelo queda antes de la suma residual.
+        # Su Grad-CAM se concentra en el primer instante y no marca el trazo.
+        # La salida del último bloque (residual + ReLU) es lo que el clasificador resume.
+        etapa_final = getattr(modelo, "etapa_4", None)
+        if etapa_final is not None and capa_objetivo is etapa_final[-1].convolucion_2:
+            capa_objetivo = etapa_final[-1]
+
         self.capa_objetivo = capa_objetivo
         self._activaciones: torch.Tensor | None = None
         self._gradientes: torch.Tensor | None = None

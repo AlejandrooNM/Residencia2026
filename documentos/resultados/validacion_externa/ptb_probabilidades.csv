@@ -1,0 +1,269 @@
+identificador,paciente,grupo,etiqueta,probabilidad_iam
+patient001/s0010_re,patient001,IAM,1,1.0
+patient002/s0015lre,patient002,IAM,1,0.95864
+patient003/s0017lre,patient003,IAM,1,0.9978
+patient004/s0020are,patient004,IAM,1,1.0
+patient005/s0021are,patient005,IAM,1,1.0
+patient006/s0022lre,patient006,IAM,1,0.88517
+patient007/s0026lre,patient007,IAM,1,1.0
+patient008/s0028lre,patient008,IAM,1,0.99519
+patient009/s0035_re,patient009,IAM,1,0.51102
+patient010/s0036lre,patient010,IAM,1,0.99372
+patient011/s0039lre,patient011,IAM,1,1.0
+patient012/s0043lre,patient012,IAM,1,0.99617
+patient013/s0045lre,patient013,IAM,1,0.97471
+patient014/s0046lre,patient014,IAM,1,0.81178
+patient015/s0047lre,patient015,IAM,1,0.91327
+patient016/s0052lre,patient016,IAM,1,0.94395
+patient017/s0053lre,patient017,IAM,1,0.90919
+patient018/s0054lre,patient018,IAM,1,0.74229
+patient019/s0058lre,patient019,IAM,1,0.98261
+patient020/s0062lre,patient020,IAM,1,0.97926
+patient021/s0065lre,patient021,IAM,1,0.98942
+patient022/s0066lre,patient022,IAM,1,1.0
+patient023/s0080lre,patient023,IAM,1,0.92495
+patient024/s0083lre,patient024,IAM,1,1.0
+patient025/s0087lre,patient025,IAM,1,0.99985
+patient026/s0088lre,patient026,IAM,1,1.0
+patient027/s0089lre,patient027,IAM,1,1.0
+patient028/s0090lre,patient028,IAM,1,0.98845
+patient029/s0092lre,patient029,IAM,1,1.0
+patient030/s0099lre,patient030,IAM,1,0.99685
+patient031/s0100lre,patient031,IAM,1,0.98844
+patient032/s0102lre,patient032,IAM,1,1.0
+patient033/s0105lre,patient033,IAM,1,0.98315
+patient034/s0109lre,patient034,IAM,1,0.9395
+patient035/s0110lre,patient035,IAM,1,0.95062
+patient036/s0111lre,patient036,IAM,1,0.9669
+patient037/s0112lre,patient037,IAM,1,1.0
+patient038/s0125lre,patient038,IAM,1,0.79605
+patient039/s0129lre,patient039,IAM,1,1.0
+patient040/s0130lre,patient040,IAM,1,0.16973
+patient041/s0132lre,patient041,IAM,1,1.0
+patient042/s0135lre,patient042,IAM,1,1.0
+patient043/s0141lre,patient043,IAM,1,0.0
+patient044/s0142lre,patient044,IAM,1,0.99996
+patient045/s0147lre,patient045,IAM,1,1.0
+patient046/s0156lre,patient046,IAM,1,0.98234
+patient047/s0160lre,patient047,IAM,1,0.52337
+patient048/s0171lre,patient048,IAM,1,0.87551
+patient049/s0173lre,patient049,IAM,1,0.0
+patient050/s0174lre,patient050,IAM,1,0.27501
+patient051/s0179lre,patient051,IAM,1,0.00105
+patient052/s0190lre,patient052,IAM,1,0.00105
+patient053/s0191lre,patient053,IAM,1,0.98157
+patient054/s0192lre,patient054,IAM,1,0.9289
+patient055/s0194lre,patient055,IAM,1,1.0
+patient056/s0196lre,patient056,IAM,1,0.96307
+patient057/s0198lre,patient057,IAM,1,0.00049
+patient058/s0216lre,patient058,IAM,1,0.99999
+patient059/s0208lre,patient059,IAM,1,1.0
+patient060/s0209lre,patient060,IAM,1,0.93535
+patient061/s0210lre,patient061,IAM,1,0.99998
+patient062/s0212lre,patient062,IAM,1,0.99899
+patient063/s0214lre,patient063,IAM,1,0.99805
+patient064/s0220lre,patient064,IAM,1,0.314
+patient065/s0221lre,patient065,IAM,1,0.99879
+patient066/s0225lre,patient066,IAM,1,0.99999
+patient067/s0227lre,patient067,IAM,1,0.7986
+patient068/s0228lre,patient068,IAM,1,0.9856
+patient069/s0232lre,patient069,IAM,1,0.99367
+patient070/s0235lre,patient070,IAM,1,0.99469
+patient071/s0236lre,patient071,IAM,1,0.96395
+patient072/s0237lre,patient072,IAM,1,0.39069
+patient073/s0238lre,patient073,IAM,1,0.98391
+patient074/s0239lre,patient074,IAM,1,0.99996
+patient075/s0242lre,patient075,IAM,1,0.07596
+patient076/s0247lre,patient076,IAM,1,0.99999
+patient077/s0251lre,patient077,IAM,1,0.78847
+patient078/s0255lre,patient078,IAM,1,1.0
+patient079/s0256lre,patient079,IAM,1,0.13351
+patient080/s0260lre,patient080,IAM,1,0.99941
+patient081/s0264lre,patient081,IAM,1,0.99845
+patient082/s0267lre,patient082,IAM,1,0.98949
+patient083/s0268lre,patient083,IAM,1,0.09549
+patient084/s0281lre,patient084,IAM,1,1.0
+patient085/s0296lre,patient085,IAM,1,0.00147
+patient086/s0316lre,patient086,IAM,1,0.90559
+patient087/s0321lre,patient087,IAM,1,0.85105
+patient088/s0339lre,patient088,IAM,1,3e-05
+patient089/s0344lre,patient089,IAM,1,0.74272
+patient090/s0348lre,patient090,IAM,1,0.0
+patient091/s0353lre,patient091,IAM,1,0.94873
+patient092/s0354lre,patient092,IAM,1,0.00026
+patient093/s0367lre,patient093,IAM,1,0.99999
+patient094/s0368lre,patient094,IAM,1,0.99999
+patient095/s0369lre,patient095,IAM,1,0.01492
+patient096/s0379lre,patient096,IAM,1,0.94053
+patient097/s0380lre,patient097,IAM,1,0.94169
+patient098/s0386lre,patient098,IAM,1,0.99997
+patient099/s0387lre,patient099,IAM,1,0.98285
+patient100/s0399lre,patient100,IAM,1,1.0
+patient101/s0400lre,patient101,IAM,1,0.84676
+patient102/s0416lre,patient102,IAM,1,0.99936
+patient103/s0332lre,patient103,IAM,1,0.99938
+patient104/s0306lre,patient104,normal,0,0.00016
+patient105/s0303lre,patient105,normal,0,0.00052
+patient106/s0030_re,patient106,valvular heart disease,0,0.97397
+patient107/s0199_re,patient107,valvular heart disease,0,0.00594
+patient108/s0013_re,patient108,IAM,1,0.91635
+patient109/s0349lre,patient109,dysrhythmia,0,0.07265
+patient110/s0003_re,patient110,valvular heart disease,0,0.00258
+patient111/s0203_re,patient111,IAM,1,1.0
+patient112/s0169_re,patient112,dysrhythmia,0,0.85342
+patient113/s0018cre,patient113,dysrhythmia,0,0.98096
+patient114/s0012_re,patient114,valvular heart disease,0,0.63698
+patient115/s0023_re,patient115,heart failure (nyha 2),0,0.34979
+patient116/s0302lre,patient116,normal,0,0.19356
+patient117/s0291lre,patient117,normal,0,1e-05
+patient118/s0183_re,patient118,heart failure (nyha 3),0,0.78807
+patient120/s0331lre,patient120,IAM,1,0.96992
+patient121/s0311lre,patient121,normal,0,1e-05
+patient122/s0312lre,patient122,normal,0,0.09104
+patient123/s0224_re,patient123,heart failure (nyha 4),0,0.84613
+patient126/s0154_re,patient126,palpitation,0,0.87526
+patient127/s0342lre,patient127,cardiomyopathy,0,0.75614
+patient128/s0182_re,patient128,IAM,1,0.96614
+patient129/s0189_re,patient129,cardiomyopathy,0,0.7426
+patient130/s0166_re,patient130,stable angina,0,0.91985
+patient131/s0273lre,patient131,normal,0,0.0
+patient133/s0393lre,patient133,dysrhythmia,0,0.00378
+patient135/s0334lre,patient135,IAM,1,0.99936
+patient137/s0392lre,patient137,cardiomyopathy,0,0.93877
+patient138/s0005_re,patient138,IAM,1,0.44153
+patient139/s0223_re,patient139,IAM,1,0.58587
+patient140/s0019_re,patient140,IAM,1,0.39479
+patient141/s0307lre,patient141,IAM,1,0.99942
+patient142/s0351lre,patient142,IAM,1,0.58162
+patient145/s0201_re,patient145,IAM,1,0.36938
+patient147/s0211_re,patient147,dysrhythmia,0,0.00026
+patient148/s0335lre,patient148,IAM,1,0.91386
+patient149/s0202are,patient149,IAM,1,0.99944
+patient150/s0287lre,patient150,normal,0,0.00208
+patient151/s0206_re,patient151,dysrhythmia,0,0.48571
+patient152/s0004_re,patient152,IAM,1,0.6846
+patient153/s0391lre,patient153,dysrhythmia,0,0.01285
+patient155/s0301lre,patient155,normal,0,0.08891
+patient156/s0299lre,patient156,normal,0,0.01937
+patient157/s0338lre,patient157,dysrhythmia,0,0.90377
+patient158/s0294lre,patient158,IAM,1,0.98073
+patient159/s0390lre,patient159,hypertrophy,0,2e-05
+patient160/s0222_re,patient160,IAM,1,0.97291
+patient163/s0034_re,patient163,IAM,1,0.85694
+patient165/s0322lre,patient165,normal,0,1e-05
+patient166/s0275lre,patient166,normal,0,1e-05
+patient167/s0200_re,patient167,cardiomyopathy,0,0.80763
+patient168/s0032_re,patient168,dysrhythmia,0,0.05956
+patient169/s0328lre,patient169,normal,0,3e-05
+patient170/s0274lre,patient170,normal,0,0.0034
+patient171/s0364lre,patient171,bundle branch block,0,0.03155
+patient172/s0304lre,patient172,normal,0,0.02859
+patient173/s0305lre,patient173,normal,0,0.07851
+patient174/s0300lre,patient174,normal,0,0.01563
+patient175/s0009_re,patient175,bundle branch block,0,0.34178
+patient177/s0366lre,patient177,dysrhythmia,0,0.02164
+patient180/s0374lre,patient180,normal,0,2e-05
+patient182/s0308lre,patient182,normal,0,1e-05
+patient183/s0175_re,patient183,IAM,1,0.99994
+patient184/s0363lre,patient184,normal,0,0.32207
+patient185/s0336lre,patient185,normal,0,0.0572
+patient187/s0207_re,patient187,dysrhythmia,0,1e-05
+patient188/s0365lre,patient188,valvular heart disease,0,0.00018
+patient189/s0309lre,patient189,IAM,1,0.53996
+patient191/s0340lre,patient191,stable angina,0,0.88245
+patient193/s0008_re,patient193,IAM,1,0.23052
+patient195/s0337lre,patient195,IAM,1,0.89798
+patient196/s0002_re,patient196,unstable angina,0,0.01613
+patient197/s0350lre,patient197,IAM,1,1.0
+patient198/s0402lre,patient198,normal,0,0.00541
+patient199/s0404lre,patient199,bundle branch block,0,0.2177
+patient201/s0420_re,patient201,cardiomyopathy,0,0.99991
+patient202/s0421_re,patient202,bundle branch block,0,0.0
+patient203/s0424_re,patient203,bundle branch block,0,0.05869
+patient204/s0425_re,patient204,bundle branch block,0,0.88205
+patient205/s0426_re,patient205,IAM,1,0.75813
+patient206/s0427_re,patient206,bundle branch block,0,0.0126
+patient207/s0428_re,patient207,IAM,1,0.13775
+patient208/s0429_re,patient208,bundle branch block,0,0.11643
+patient209/s0431_re,patient209,bundle branch block,0,0.92107
+patient210/s0432_re,patient210,hypertrophy,0,0.04146
+patient211/s0433_re,patient211,IAM,1,1.0
+patient212/s0434_re,patient212,hypertrophy,0,0.09907
+patient213/s0435_re,patient213,bundle branch block,0,0.00636
+patient214/s0436_re,patient214,normal,0,0.00057
+patient215/s0437_re,patient215,cardiomyopathy,0,0.15918
+patient216/s0438_re,patient216,hypertrophy,0,0.00673
+patient217/s0439_re,patient217,bundle branch block,0,0.82392
+patient218/s0440_re,patient218,dysrhythmia,0,0.88169
+patient219/s0441_re,patient219,bundle branch block,0,0.90767
+patient220/s0442_re,patient220,bundle branch block,0,0.10971
+patient221/s0443_re,patient221,hypertrophy,0,0.96608
+patient222/s0444_re,patient222,cardiomyopathy,0,0.00392
+patient223/s0445_re,patient223,IAM,1,0.99999
+patient224/s0447_re,patient224,valvular heart disease,0,0.37054
+patient225/s0448_re,patient225,bundle branch block,0,0.0007
+patient226/s0449_re,patient226,IAM,1,0.04309
+patient227/s0450_re,patient227,hypertrophy,0,0.9638
+patient228/s0451_re,patient228,bundle branch block,0,0.03637
+patient229/s0452_re,patient229,normal,0,0.0
+patient230/s0454_re,patient230,IAM,1,0.86428
+patient231/s0455_re,patient231,IAM,1,1.0
+patient232/s0456_re,patient232,cardiomyopathy,0,0.00358
+patient233/s0457_re,patient233,normal,0,0.00046
+patient234/s0460_re,patient234,normal,0,0.00235
+patient235/s0461_re,patient235,normal,0,0.00159
+patient236/s0462_re,patient236,normal,0,0.00013
+patient237/s0465_re,patient237,normal,0,0.2852
+patient238/s0466_re,patient238,normal,0,0.0002
+patient239/s0467_re,patient239,normal,0,0.00491
+patient240/s0468_re,patient240,normal,0,4e-05
+patient241/s0469_re,patient241,normal,0,5e-05
+patient242/s0471_re,patient242,normal,0,0.10961
+patient243/s0472_re,patient243,normal,0,0.00036
+patient244/s0473_re,patient244,normal,0,0.00143
+patient245/s0474_re,patient245,normal,0,0.01261
+patient246/s0478_re,patient246,normal,0,3e-05
+patient247/s0479_re,patient247,normal,0,0.00685
+patient248/s0481_re,patient248,normal,0,0.00049
+patient249/s0484_re,patient249,myocarditis,0,0.69868
+patient250/s0485_re,patient250,hypertrophy,0,0.79579
+patient251/s0486_re,patient251,normal,0,0.00255
+patient252/s0487_re,patient252,normal,0,0.00591
+patient253/s0488_re,patient253,cardiomyopathy,0,0.62408
+patient254/s0489_re,patient254,cardiomyopathy,0,0.37141
+patient255/s0491_re,patient255,normal,0,0.00023
+patient256/s0492_re,patient256,cardiomyopathy,0,0.98146
+patient257/s0493_re,patient257,cardiomyopathy,0,0.45938
+patient258/s0494_re,patient258,dysrhythmia,0,0.12034
+patient259/s0495_re,patient259,IAM,1,0.0355
+patient260/s0496_re,patient260,normal,0,0.00072
+patient261/s0497_re,patient261,IAM,1,0.00203
+patient262/s0498_re,patient262,cardiomyopathy,0,0.92156
+patient263/s0499_re,patient263,normal,0,0.00029
+patient264/s0500_re,patient264,normal,0,0.07042
+patient265/s0501_re,patient265,IAM,1,0.97103
+patient266/s0502_re,patient266,normal,0,0.00035
+patient267/s0504_re,patient267,normal,0,0.00313
+patient268/s0505_re,patient268,IAM,1,1.0
+patient269/s0508_re,patient269,myocarditis,0,0.13198
+patient270/s0507_re,patient270,IAM,1,0.99997
+patient271/s0509_re,patient271,myocarditis,0,0.00034
+patient272/s0510_re,patient272,myocarditis,0,0.00256
+patient273/s0511_re,patient273,IAM,1,0.95537
+patient274/s0512_re,patient274,IAM,1,0.98007
+patient276/s0526_re,patient276,normal,0,4e-05
+patient277/s0527_re,patient277,normal,0,0.0
+patient279/s0531_re,patient279,normal,0,0.0048
+patient280/s0535_re,patient280,IAM,1,0.88613
+patient282/s0539_re,patient282,IAM,1,1.0
+patient283/s0542_re,patient283,IAM,1,0.93275
+patient284/s0543_re,patient284,normal,0,0.0746
+patient286/s0546_re,patient286,dysrhythmia,0,0.00212
+patient287/s0547_re,patient287,IAM,1,1.0
+patient288/s0549_re,patient288,cardiomyopathy,0,0.72428
+patient289/s0550_re,patient289,cardiomyopathy,0,0.96405
+patient290/s0553_re,patient290,IAM,1,0.41336
+patient291/s0554_re,patient291,IAM,1,0.99939
+patient292/s0555_re,patient292,IAM,1,0.9306
+patient293/s0557_re,patient293,IAM,1,0.95767
+patient294/s0559_re,patient294,IAM,1,0.99998

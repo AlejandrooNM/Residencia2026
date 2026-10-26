@@ -1,0 +1,96 @@
+{
+  "base": "ECG Images dataset of Cardiac Patients (Mendeley, Pakistán)",
+  "fecha": "2026-09-30T03:46:07",
+  "umbral": 0.3623,
+  "hojas": 928,
+  "digitalizadas": 1.0,
+  "motivos_de_fallo": {},
+  "tiras_ritmo_asumidas": {
+    "III": 102,
+    "II": 592,
+    "V5": 22,
+    "V6": 145,
+    "I": 2,
+    "aVF": 50,
+    "V4": 14,
+    "aVR": 1
+  },
+  "infarto_frente_a_normal": {
+    "ecg": 523,
+    "casos_iam": 239,
+    "sensibilidad": 0.9331,
+    "especificidad": 0.5634,
+    "auc_roc": 0.8585,
+    "f1": 0.7611,
+    "vp": 223,
+    "fp": 124,
+    "fn": 16,
+    "vn": 160,
+    "intervalos_confianza_95": {
+      "sensibilidad": [
+        0.9013,
+        0.9634
+      ],
+      "especificidad": [
+        0.5068,
+        0.6228
+      ],
+      "auc_roc": [
+        0.8244,
+        0.8912
+      ]
+    }
+  },
+  "infarto_o_antecedente_frente_al_resto": {
+    "ecg": 928,
+    "casos_iam": 411,
+    "sensibilidad": 0.9513,
+    "especificidad": 0.5242,
+    "auc_roc": 0.8631,
+    "f1": 0.7462,
+    "vp": 391,
+    "fp": 246,
+    "fn": 20,
+    "vn": 271,
+    "intervalos_confianza_95": {
+      "sensibilidad": [
+        0.9273,
+        0.9712
+      ],
+      "especificidad": [
+        0.4826,
+        0.5681
+      ],
+      "auc_roc": [
+        0.8379,
+        0.886
+      ]
+    }
+  },
+  "por_clase": {
+    "antecedente_infarto": {
+      "hojas": 172,
+      "digitalizadas": 1.0,
+      "marcadas_como_iam": 0.9767,
+      "probabilidad_media": 0.9134
+    },
+    "infarto": {
+      "hojas": 239,
+      "digitalizadas": 1.0,
+      "marcadas_como_iam": 0.9331,
+      "probabilidad_media": 0.8384
+    },
+    "latido_anormal": {
+      "hojas": 233,
+      "digitalizadas": 1.0,
+      "marcadas_como_iam": 0.5236,
+      "probabilidad_media": 0.4525
+    },
+    "normal": {
+      "hojas": 284,
+      "digitalizadas": 1.0,
+      "marcadas_como_iam": 0.4366,
+      "probabilidad_media": 0.364
+    }
+  }
+}

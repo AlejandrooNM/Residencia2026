@@ -82,10 +82,21 @@ def parsear_argumentos() -> argparse.Namespace:
         default="ligera",
         help="Arquitectura a entrenar (en CPU se recomienda 'ligera')",
     )
-    parser.add_argument("--epocas", type=int, default=12)
+    parser.add_argument("--epocas", type=int, default=40)
     parser.add_argument("--lote", type=int, default=32)
     parser.add_argument("--lr", type=float, default=1e-3)
-    parser.add_argument("--paciencia", type=int, default=5)
+    parser.add_argument(
+        "--paciencia",
+        type=int,
+        default=15,
+        help="Epocas sin mejorar el AUC antes de detener. Usar un valor >= --epocas para completar todas.",
+    )
+    parser.add_argument(
+        "--paciencia-lr",
+        type=int,
+        default=6,
+        help="Epocas sin mejorar el AUC antes de reducir la tasa de aprendizaje a la mitad",
+    )
     parser.add_argument(
         "--frecuencia",
         type=int,
@@ -140,6 +151,7 @@ def main() -> None:
         tamano_lote=args.lote,
         tasa_aprendizaje=args.lr,
         paciencia_early_stopping=args.paciencia,
+        paciencia_tasa_aprendizaje=args.paciencia_lr,
     )
     fijar_semilla(configuracion.semilla)
 
@@ -165,7 +177,11 @@ def main() -> None:
     print(f"Variante:    {args.variante}")
     print(f"Datos:       {carpeta_procesado}")
     print(f"Checkpoints: {carpeta_checkpoints}")
-    print(f"Epocas:      {configuracion.epocas} | lote={configuracion.tamano_lote} | lr={configuracion.tasa_aprendizaje}")
+    print(
+        f"Epocas:      {configuracion.epocas} | lote={configuracion.tamano_lote} | "
+        f"lr={configuracion.tasa_aprendizaje} | parada={configuracion.paciencia_early_stopping} | "
+        f"paciencia_lr={configuracion.paciencia_tasa_aprendizaje}"
+    )
     print(f"Aumento:     {'si' if args.aumento_datos else 'no'}")
     print(f"Formato:     {'impreso 3x4' if args.formato_impreso else 'digital 10 s'}")
     if args.formato_impreso and args.digitalizados > 0:

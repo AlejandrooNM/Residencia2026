@@ -33,6 +33,16 @@ ANCHO_PAGINA_TIPICO_MM = 290.0
 SUAVIZADO_PERFIL_PX = 1.0
 DIVISORES_PERIODO = (5, 2, 3)
 INTERPRETACIONES_PERIODO_MM = (1.0, 2.0, 5.0, 10.0)
+# Dentro del papel milimétrico las líneas verticales cruzan cada renglón de píxeles;
+# fuera (encabezado, pie) solo queda papel blanco con una oscuridad cien veces menor
+PERCENTIL_NIVEL_CUADRICULA = 75.0
+FRACCION_NIVEL_CUADRICULA = 0.25
+SUAVIZADO_FRANJA_CUADRICULA = 1 / 200
+FRACCION_TRAMO_MINIMO_CUADRICULA = 0.02
+# Los puntos de una cuadrícula punteada pueden pasar el umbral de tinta; el trazo
+# nunca se fragmenta en piezas tan pequeñas
+LADO_MAXIMO_MOTA_MM = 0.3
+LADO_MAXIMO_MOTA_MINIMO_PX = 2
 
 
 @dataclass(frozen=True)
@@ -101,9 +111,7 @@ def estimar_escalas_candidatas(oscuridad_cuadricula: np.ndarray, trazo: np.ndarr
     Returns:
         Lista vacía si no se distingue una cuadrícula periódica.
     """
-    cuadricula = oscuridad_cuadricula.copy()
-    cuadricula[cv2.dilate(trazo.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0] = 0.0
-
+    cuadricula = _cuadricula_sin_trazo(oscuridad_cuadricula, trazo)
     periodo_x = _periodo_fundamental(cuadricula.mean(axis=0))
     periodo_y = _periodo_fundamental(cuadricula.mean(axis=1))
     periodo_x = periodo_x or periodo_y
@@ -122,6 +130,49 @@ def estimar_escalas_candidatas(oscuridad_cuadricula: np.ndarray, trazo: np.ndarr
         )
         for candidato in candidatos_x
     ]
+
+
+def quitar_motas(trazo: np.ndarray, escala: Escala) -> np.ndarray:
+    """Máscara del trazo sin componentes diminutos (puntos de cuadrícula o ruido)."""
+    lado_maximo = max(LADO_MAXIMO_MOTA_MINIMO_PX, int(LADO_MAXIMO_MOTA_MM * escala.pixeles_por_mm_x))
+    _, etiquetas, estadisticas, _ = cv2.connectedComponentsWithStats(trazo.astype(np.uint8), connectivity=8)
+    lados = np.maximum(estadisticas[:, cv2.CC_STAT_WIDTH], estadisticas[:, cv2.CC_STAT_HEIGHT])
+    conservar = lados > lado_maximo
+    conservar[0] = False
+    return conservar[etiquetas]
+
+
+def delimitar_franja_cuadricula(oscuridad_cuadricula: np.ndarray, trazo: np.ndarray) -> tuple[int, int]:
+    """
+    Primer y último renglón de píxeles cubiertos por la cuadrícula.
+
+    Los trazos del ECG siempre se imprimen sobre el papel milimétrico; los textos y
+    líneas divisorias del encabezado o del pie, a menudo fuera de él. Si la
+    cuadrícula ocupa toda la hoja (o no se distingue), devuelve la imagen completa.
+    """
+    alto = oscuridad_cuadricula.shape[0]
+    perfil = _cuadricula_sin_trazo(oscuridad_cuadricula, trazo).mean(axis=1)
+    ventana = max(3, int(alto * SUAVIZADO_FRANJA_CUADRICULA))
+    perfil = np.convolve(perfil, np.ones(ventana) / ventana, mode="same")
+    nivel = float(np.percentile(perfil, PERCENTIL_NIVEL_CUADRICULA))
+    if nivel <= 0:
+        return 0, alto - 1
+
+    renglones = np.flatnonzero(perfil >= FRACCION_NIVEL_CUADRICULA * nivel)
+    cortes = np.flatnonzero(np.diff(renglones) > 1)
+    inicios = np.concatenate([[renglones[0]], renglones[cortes + 1]])
+    fines = np.concatenate([renglones[cortes], [renglones[-1]]])
+    # Un reflejo puede partir la cuadrícula en varios tramos: se une del primero al último
+    amplios = fines - inicios >= alto * FRACCION_TRAMO_MINIMO_CUADRICULA
+    if not amplios.any():
+        return 0, alto - 1
+    return int(inicios[amplios].min()), int(fines[amplios].max())
+
+
+def _cuadricula_sin_trazo(oscuridad_cuadricula: np.ndarray, trazo: np.ndarray) -> np.ndarray:
+    cuadricula = oscuridad_cuadricula.copy()
+    cuadricula[cv2.dilate(trazo.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0] = 0.0
+    return cuadricula
 
 
 def _interpretaciones(periodo: float) -> list[float]:

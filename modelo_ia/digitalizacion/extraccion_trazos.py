@@ -32,6 +32,9 @@ PESO_INICIO_EN_LINEA_BASE = 0.1
 COSTE_COLUMNA_SIN_TRAZO = 0.5
 HUECO_INTERPOLABLE_MM = 2.0
 VENTANA_TENDENCIA_MM = 5.0  # más ancha que un QRS: la mediana queda en la línea base
+# Raya de cambio de derivación: cruza la línea base varios milímetros hacia ambos lados.
+# Un QRS sube o baja, pero no las dos cosas en la misma columna.
+CRUCE_SEPARADOR_MM = 3.0
 
 
 @dataclass(frozen=True)
@@ -124,6 +127,9 @@ def seguir_trazo(
     inicio_x, fin_x = max(0, inicio_x), min(trazo.shape[1] - 1, fin_x)
     banda = trazo[limite_superior:limite_inferior, inicio_x:fin_x + 1]
     columnas, superiores, inferiores = _tramos_por_columna(banda)
+    columnas, superiores, inferiores = _sin_rayas_de_cambio(
+        columnas, superiores, inferiores, fila.linea_base - limite_superior, escala.pixeles_por_mm_y
+    )
     posiciones = np.full(fin_x - inicio_x + 1, np.nan)
     if len(columnas) == 0:
         return posiciones
@@ -202,6 +208,33 @@ def _tramos_por_columna(banda: np.ndarray) -> tuple[np.ndarray, list[np.ndarray]
     superiores = np.split(filas_inicio, primeros[1:])
     inferiores = np.split(filas_fin - 1, primeros[1:])
     return columnas, superiores, inferiores
+
+
+def _sin_rayas_de_cambio(
+    columnas: np.ndarray,
+    superiores: list[np.ndarray],
+    inferiores: list[np.ndarray],
+    linea_base: float,
+    pixeles_por_mm: float,
+) -> tuple[np.ndarray, list[np.ndarray], list[np.ndarray]]:
+    """Descarta, en cada columna, la tinta que atraviesa la línea base en los dos sentidos."""
+    margen = CRUCE_SEPARADOR_MM * pixeles_por_mm
+    columnas_ok: list[int] = []
+    sup_ok: list[np.ndarray] = []
+    inf_ok: list[np.ndarray] = []
+    for columna, superior, inferior in zip(columnas, superiores, inferiores):
+        es_raya = (linea_base - superior >= margen) & (inferior - linea_base >= margen)
+        if es_raya.all():
+            continue
+        if es_raya.any():
+            superior = superior[~es_raya]
+            inferior = inferior[~es_raya]
+        columnas_ok.append(int(columna))
+        sup_ok.append(superior)
+        inf_ok.append(inferior)
+    if not columnas_ok:
+        return np.array([], dtype=np.int64), [], []
+    return np.array(columnas_ok, dtype=np.int64), sup_ok, inf_ok
 
 
 def _camino_optimo(

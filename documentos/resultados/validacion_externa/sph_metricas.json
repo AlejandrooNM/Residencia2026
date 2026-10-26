@@ -1,0 +1,57 @@
+{
+  "base": "SPH, Shandong Provincial Hospital (China)",
+  "fecha": "2026-09-30T02:15:56",
+  "umbral": 0.3204,
+  "ecg_evaluados": 25770,
+  "casos_iam": 260,
+  "prevalencia_iam": 0.0101,
+  "especificidad": 0.8964,
+  "especificidad_en_normales": 0.9579,
+  "vp": 251,
+  "fp": 2644,
+  "fn": 9,
+  "vn": 22866,
+  "por_grupo": {
+    "normal": {
+      "ecg": 13905,
+      "marcados_como_iam": 0.0421,
+      "probabilidad_media": 0.042
+    },
+    "otras alteraciones": {
+      "ecg": 6759,
+      "marcados_como_iam": 0.1502,
+      "probabilidad_media": 0.1257
+    },
+    "cambios ST-T": {
+      "ecg": 4846,
+      "marcados_como_iam": 0.2152,
+      "probabilidad_media": 0.1744
+    },
+    "IAM": {
+      "ecg": 260,
+      "marcados_como_iam": 0.9654,
+      "probabilidad_media": 0.8977
+    }
+  },
+  "sensibilidad": 0.9654,
+  "auc_roc": 0.984,
+  "f1": 0.1591,
+  "vpp": 0.0867,
+  "vpn": 0.9996,
+  "intervalos_confianza_95": {
+    "sensibilidad": [
+      0.9422,
+      0.9879
+    ],
+    "especificidad": [
+      0.8926,
+      0.9
+    ],
+    "auc_roc": [
+      0.9796,
+      0.9882
+    ]
+  },
+  "auc_iam_frente_a_normales": 0.9945,
+  "descartados_senal_invalida": 0
+}

@@ -34,7 +34,9 @@ COLUMNAS = 4
 DURACION_COLUMNA_S = DURACION_REGISTRO_S / COLUMNAS
 MUESTRAS_COLUMNA = MUESTRAS_IMPRESO // COLUMNAS
 
-# Índices en el orden I, II, III, aVR, aVL, aVF, V1..V6
+NOMBRES_DERIVACIONES = ("I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6")
+
+# Índices en el orden de NOMBRES_DERIVACIONES
 DISPOSICION_3X4: tuple[tuple[int, ...], ...] = (
     (0, 3, 6, 9),
     (1, 4, 7, 10),

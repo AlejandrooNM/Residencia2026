@@ -87,9 +87,9 @@ const DESCRIPCION_DERIVACIONES = {
   senal:
     "Derivaciones del plano frontal (I, II, III, aVR, aVL, aVF), 10 s, tras filtrado 0.5–40 Hz.",
   [TIPO_DOCUMENTO_IMPRESO]:
-    "Las 12 derivaciones extraídas del ECG impreso. En el formato 3 × 4 cada derivación solo " +
-    "se imprime durante 2.5 s de su columna; los huecos son tramos que no aparecen en papel. " +
-    "Compare el trazo con su hoja para verificar la digitalización.",
+    "El gráfico repite la hoja: tres filas (I–aVR–V1–V4, II–aVL–V2–V5, III–aVF–V3–V6) " +
+    "de 2.5 s y, debajo, la tira de ritmo. Todas comparten la escala en milivoltios; " +
+    "la línea suave es 0 mV. Compárelo con el papel para verificar la digitalización.",
 };
 // 1 − sensibilidad: medida en prueba (señal) y la exigida al elegir el punto de corte (impreso)
 const FALSOS_NEGATIVOS_POR_CIEN = { senal: 16, [TIPO_DOCUMENTO_IMPRESO]: 15 };
@@ -296,7 +296,7 @@ function mostrarGrafico(visualizacion, esIam, tipoEntrada = "senal") {
       `Registro n.º ${visualizacion.indice} del conjunto de validación PTB-XL (100 Hz).`;
   } else {
     detalleGrafico.textContent = esImpreso
-      ? "ECG impreso digitalizado y remuestreado a 100 Hz."
+      ? "ECG impreso digitalizado a 100 Hz, en milivoltios y con la misma ganancia en todas las derivaciones."
       : "Registro cargado por el usuario, remuestreado a 100 Hz.";
   }
 

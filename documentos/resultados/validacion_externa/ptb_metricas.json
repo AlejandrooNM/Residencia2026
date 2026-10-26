@@ -1,0 +1,107 @@
+{
+  "base": "PTB Diagnostic ECG Database (Alemania)",
+  "fecha": "2026-09-30T02:13:54",
+  "umbral": 0.3204,
+  "ecg_evaluados": 268,
+  "casos_iam": 148,
+  "prevalencia_iam": 0.5522,
+  "especificidad": 0.7,
+  "especificidad_en_normales": 0.9808,
+  "vp": 127,
+  "fp": 36,
+  "fn": 21,
+  "vn": 84,
+  "por_grupo": {
+    "IAM": {
+      "ecg": 148,
+      "marcados_como_iam": 0.8581,
+      "probabilidad_media": 0.8014
+    },
+    "normal": {
+      "ecg": 52,
+      "marcados_como_iam": 0.0192,
+      "probabilidad_media": 0.0288
+    },
+    "bundle branch block": {
+      "ecg": 15,
+      "marcados_como_iam": 0.3333,
+      "probabilidad_media": 0.2978
+    },
+    "cardiomyopathy": {
+      "ecg": 15,
+      "marcados_como_iam": 0.8,
+      "probabilidad_media": 0.6305
+    },
+    "dysrhythmia": {
+      "ecg": 14,
+      "marcados_como_iam": 0.3571,
+      "probabilidad_media": 0.3142
+    },
+    "hypertrophy": {
+      "ecg": 7,
+      "marcados_como_iam": 0.4286,
+      "probabilidad_media": 0.4104
+    },
+    "valvular heart disease": {
+      "ecg": 6,
+      "marcados_como_iam": 0.5,
+      "probabilidad_media": 0.3317
+    },
+    "myocarditis": {
+      "ecg": 4,
+      "marcados_como_iam": 0.25,
+      "probabilidad_media": 0.2084
+    },
+    "stable angina": {
+      "ecg": 2,
+      "marcados_como_iam": 1.0,
+      "probabilidad_media": 0.9011
+    },
+    "heart failure (nyha 2)": {
+      "ecg": 1,
+      "marcados_como_iam": 1.0,
+      "probabilidad_media": 0.3498
+    },
+    "heart failure (nyha 3)": {
+      "ecg": 1,
+      "marcados_como_iam": 1.0,
+      "probabilidad_media": 0.7881
+    },
+    "heart failure (nyha 4)": {
+      "ecg": 1,
+      "marcados_como_iam": 1.0,
+      "probabilidad_media": 0.8461
+    },
+    "palpitation": {
+      "ecg": 1,
+      "marcados_como_iam": 1.0,
+      "probabilidad_media": 0.8753
+    },
+    "unstable angina": {
+      "ecg": 1,
+      "marcados_como_iam": 0.0,
+      "probabilidad_media": 0.0161
+    }
+  },
+  "sensibilidad": 0.8581,
+  "auc_roc": 0.8684,
+  "f1": 0.8167,
+  "vpp": 0.7791,
+  "vpn": 0.8,
+  "intervalos_confianza_95": {
+    "sensibilidad": [
+      0.8024,
+      0.9128
+    ],
+    "especificidad": [
+      0.616,
+      0.7819
+    ],
+    "auc_roc": [
+      0.8183,
+      0.9097
+    ]
+  },
+  "auc_iam_frente_a_normales": 0.9459,
+  "descartados_senal_invalida": 0
+}
