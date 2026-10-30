@@ -64,14 +64,27 @@ const valorReal = document.getElementById("valor-real");
 const valorAcierto = document.getElementById("valor-acierto");
 const panelGrafico = document.getElementById("panel-grafico");
 const lienzoEcg = document.getElementById("lienzo-ecg");
+const botonAmpliarEcg = document.getElementById("boton-ampliar-ecg");
 const detalleGrafico = document.getElementById("detalle-grafico");
 const textoZonas = document.getElementById("texto-zonas");
 const repartoZonas = document.getElementById("reparto-zonas");
 const bloqueRegiones = document.getElementById("bloque-regiones");
 const listaRegiones = document.getElementById("lista-regiones");
+const visorEcg = document.getElementById("visor-ecg");
+const lienzoVisorEcg = document.getElementById("lienzo-visor-ecg");
+const visorEscena = document.getElementById("visor-ecg-escena");
+const visorLienzoWrap = document.getElementById("visor-ecg-lienzo-wrap");
+const visorZoomValor = document.getElementById("visor-zoom-valor");
+const botonVisorZoomMas = document.getElementById("visor-zoom-mas");
+const botonVisorZoomMenos = document.getElementById("visor-zoom-menos");
+const botonVisorCerrar = document.getElementById("visor-cerrar");
 
 const panelHistorial = document.getElementById("panel-historial");
 const cuerpoHistorial = document.getElementById("cuerpo-historial");
+
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 4;
+const ZOOM_PASO = 0.25;
 
 const UMBRAL_SIN_DATO = 0.5;
 
@@ -87,15 +100,19 @@ const DESCRIPCION_DERIVACIONES = {
   senal:
     "Derivaciones del plano frontal (I, II, III, aVR, aVL, aVF), 10 s, tras filtrado 0.5–40 Hz.",
   [TIPO_DOCUMENTO_IMPRESO]:
-    "El gráfico repite la hoja: tres filas (I–aVR–V1–V4, II–aVL–V2–V5, III–aVF–V3–V6) " +
-    "de 2.5 s y, debajo, la tira de ritmo. Todas comparten la escala en milivoltios; " +
-    "la línea suave es 0 mV. Compárelo con el papel para verificar la digitalización.",
+    "Solo la cuadrícula del ECG (PDF/foto). El mapa de calor (Grad-CAM) indica en qué " +
+    "instantes del registro influyó más la decisión del modelo; use «Ampliar ECG» para " +
+    "hacer zoom. La digitalización solo alimenta al modelo.",
 };
 // 1 − sensibilidad: medida en prueba (señal) y la exigida al elegir el punto de corte (impreso)
 const FALSOS_NEGATIVOS_POR_CIEN = { senal: 16, [TIPO_DOCUMENTO_IMPRESO]: 15 };
 
 let indiceDemo = 0;
 let ultimaVisualizacion = null;
+let visorZoom = 1;
+let visorPanX = 0;
+let visorPanY = 0;
+let visorArrastre = null;
 
 function obtenerArchivosSeleccionados() {
   return Array.from(campoArchivo.files ?? []);
@@ -209,11 +226,14 @@ function mostrarDigitalizacion(digitalizacion) {
   datoDigitalizacion.classList.toggle("oculto", !digitalizacion);
   if (!digitalizacion) return;
 
-  const tiras = digitalizacion.tiras_ritmo.length
-    ? `tira de ritmo ${digitalizacion.tiras_ritmo.join(", ")}`
-    : "sin tira de ritmo";
+  const esSiete = digitalizacion.formato === "7_canales";
+  const detalleFormato = esSiete
+    ? "formato 7 canales (I–aVF, V1)"
+    : digitalizacion.tiras_ritmo.length
+      ? `formato 3 × 4, tira de ritmo ${digitalizacion.tiras_ritmo.join(", ")}`
+      : "formato 3 × 4, sin tira de ritmo";
   valorDigitalizacion.textContent =
-    `Trazo recuperado ${formatearPorcentaje(digitalizacion.cobertura)} · formato 3 × 4, ${tiras}`;
+    `Trazo recuperado ${formatearPorcentaje(digitalizacion.cobertura)} · ${detalleFormato}`;
 
   const detalles = [];
   if (digitalizacion.concordancia_ritmo !== null) {
@@ -296,11 +316,12 @@ function mostrarGrafico(visualizacion, esIam, tipoEntrada = "senal") {
       `Registro n.º ${visualizacion.indice} del conjunto de validación PTB-XL (100 Hz).`;
   } else {
     detalleGrafico.textContent = esImpreso
-      ? "ECG impreso digitalizado a 100 Hz, en milivoltios y con la misma ganancia en todas las derivaciones."
+      ? "Cuadrícula del ECG con Grad-CAM; pulse «Ampliar ECG» para zoom. La señal digitalizada solo se usa en el modelo."
       : "Registro cargado por el usuario, remuestreado a 100 Hz.";
   }
 
   dibujarEcgConGradCam(lienzoEcg, visualizacion);
+  botonAmpliarEcg?.classList.toggle("oculto", !visualizacion);
   textoZonas.textContent = describirZonas(visualizacion.importancia_por_zona, esIam);
   mostrarRepartoZonas(visualizacion.importancia_por_zona ?? {});
   mostrarRegiones(visualizacion);
@@ -369,10 +390,59 @@ function mostrarRegiones(visualizacion) {
 function ocultarGrafico() {
   ultimaVisualizacion = null;
   panelGrafico.classList.add("oculto");
+  botonAmpliarEcg?.classList.add("oculto");
+  cerrarVisorEcg();
   repartoZonas.innerHTML = "";
   listaRegiones.innerHTML = "";
   textoZonas.textContent = "";
   detalleGrafico.textContent = "";
+}
+
+function aplicarTransformacionVisor() {
+  if (!visorLienzoWrap || !visorZoomValor) return;
+  visorLienzoWrap.style.transform = `translate(${visorPanX}px, ${visorPanY}px) scale(${visorZoom})`;
+  visorZoomValor.textContent = `${Math.round(visorZoom * 100)}%`;
+}
+
+function fijarZoomVisor(nuevoZoom, origenClienteX = null, origenClienteY = null) {
+  const anterior = visorZoom;
+  visorZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, nuevoZoom));
+  if (origenClienteX != null && origenClienteY != null && visorEscena) {
+    const rect = visorEscena.getBoundingClientRect();
+    const cx = origenClienteX - rect.left - rect.width / 2;
+    const cy = origenClienteY - rect.top - rect.height / 2;
+    const factor = visorZoom / anterior;
+    visorPanX = cx - (cx - visorPanX) * factor;
+    visorPanY = cy - (cy - visorPanY) * factor;
+  }
+  if (visorZoom === ZOOM_MIN) {
+    visorPanX = 0;
+    visorPanY = 0;
+  }
+  aplicarTransformacionVisor();
+}
+
+function abrirVisorEcg() {
+  if (!ultimaVisualizacion || !visorEcg || !lienzoVisorEcg) return;
+  visorZoom = 1;
+  visorPanX = 0;
+  visorPanY = 0;
+  aplicarTransformacionVisor();
+  if (typeof visorEcg.showModal === "function") visorEcg.showModal();
+  else visorEcg.setAttribute("open", "");
+  requestAnimationFrame(() => {
+    const ancho = Math.max(720, Math.floor((visorEscena?.clientWidth || 1000) - 32));
+    lienzoVisorEcg.style.width = `${ancho}px`;
+    dibujarEcgConGradCam(lienzoVisorEcg, ultimaVisualizacion);
+  });
+}
+
+function cerrarVisorEcg() {
+  if (!visorEcg) return;
+  if (typeof visorEcg.close === "function" && visorEcg.open) visorEcg.close();
+  else visorEcg.removeAttribute("open");
+  visorArrastre = null;
+  visorEscena?.classList.remove("arrastrando");
 }
 
 function crearCelda(texto, clase = "") {
@@ -545,8 +615,53 @@ formulario.addEventListener("submit", async (evento) => {
 window.addEventListener("resize", () => {
   if (ultimaVisualizacion) {
     dibujarEcgConGradCam(lienzoEcg, ultimaVisualizacion);
+    if (visorEcg?.open) dibujarEcgConGradCam(lienzoVisorEcg, ultimaVisualizacion);
   }
 });
+
+botonAmpliarEcg?.addEventListener("click", abrirVisorEcg);
+botonVisorCerrar?.addEventListener("click", cerrarVisorEcg);
+botonVisorZoomMas?.addEventListener("click", () => fijarZoomVisor(visorZoom + ZOOM_PASO));
+botonVisorZoomMenos?.addEventListener("click", () => fijarZoomVisor(visorZoom - ZOOM_PASO));
+
+visorEcg?.addEventListener("cancel", (evento) => {
+  evento.preventDefault();
+  cerrarVisorEcg();
+});
+
+visorEscena?.addEventListener(
+  "wheel",
+  (evento) => {
+    if (!visorEcg?.open) return;
+    evento.preventDefault();
+    const delta = evento.deltaY < 0 ? ZOOM_PASO : -ZOOM_PASO;
+    fijarZoomVisor(visorZoom + delta, evento.clientX, evento.clientY);
+  },
+  { passive: false },
+);
+
+visorEscena?.addEventListener("pointerdown", (evento) => {
+  if (!visorEcg?.open || visorZoom <= ZOOM_MIN) return;
+  visorArrastre = { id: evento.pointerId, x: evento.clientX, y: evento.clientY, panX: visorPanX, panY: visorPanY };
+  visorEscena.classList.add("arrastrando");
+  visorEscena.setPointerCapture(evento.pointerId);
+});
+
+visorEscena?.addEventListener("pointermove", (evento) => {
+  if (!visorArrastre || evento.pointerId !== visorArrastre.id) return;
+  visorPanX = visorArrastre.panX + (evento.clientX - visorArrastre.x);
+  visorPanY = visorArrastre.panY + (evento.clientY - visorArrastre.y);
+  aplicarTransformacionVisor();
+});
+
+function soltarArrastreVisor(evento) {
+  if (!visorArrastre || evento.pointerId !== visorArrastre.id) return;
+  visorArrastre = null;
+  visorEscena?.classList.remove("arrastrando");
+}
+
+visorEscena?.addEventListener("pointerup", soltarArrastreVisor);
+visorEscena?.addEventListener("pointercancel", soltarArrastreVisor);
 
 actualizarNombreArchivo();
 comprobarApi();

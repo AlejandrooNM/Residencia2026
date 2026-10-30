@@ -42,6 +42,11 @@ DISPOSICION_3X4: tuple[tuple[int, ...], ...] = (
     (1, 4, 7, 10),
     (2, 5, 8, 11),
 )
+# Impresión simultánea de 7 canales (habitual en hospitales e IMSS): cada fila
+# es una derivación completa de ~10 s. Se asume el orden de miembros + V1.
+DISPOSICION_7_CANALES: tuple[int, ...] = (0, 1, 2, 3, 4, 5, 6)  # I II III aVR aVL aVF V1
+FORMATO_3X4 = "3x4"
+FORMATO_7_CANALES = "7_canales"
 DERIVACION_II = 1
 TIRAS_RITMO_PREDETERMINADAS: tuple[int, ...] = (DERIVACION_II,)
 TIRAS_RITMO_TRIPLES: tuple[int, ...] = (1, 6, 10)  # II, V1, V5

@@ -26,6 +26,10 @@ class DatosDigitalizacion(BaseModel):
     """Cómo se extrajo la señal de un ECG impreso y qué tan fiable fue."""
 
     cobertura: float = Field(ge=0.0, le=1.0, description="Fracción del trazo esperado que se recuperó")
+    formato: str = Field(
+        default="3x4",
+        description="Disposición reconocida: 3x4 o 7_canales",
+    )
     concordancia_ritmo: float | None = Field(
         default=None,
         description="Correlación entre la tira de ritmo y el tramo de II del formato 3 x 4",

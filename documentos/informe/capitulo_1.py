@@ -68,7 +68,8 @@ BLOQUES = [
     ("li", "**Un resultado negativo no descarta un infarto.** Alrededor de 16 de cada 100 infartos del grupo de prueba no fueron detectados por el modelo digital, y hay infartos que no producen cambios en el electrocardiograma."),
     ("li", "**Genera falsas alarmas**, sobre todo en pacientes con otras enfermedades del corazón."),
     ("li", "**El mapa de Grad-CAM es orientativo.** Indica dónde se fijó la red, no prueba que ahí exista una lesión."),
-    ("li", "**La lectura de hojas impresas tiene condiciones.** Funciona con el formato 3 × 4 a 25 mm/s y 10 mm/mV; las fotografías tomadas en ángulo, con sombras fuertes o cortadas pueden digitalizarse mal."),
+    ("li", "**La lectura de hojas impresas tiene condiciones.** Funciona con el formato 3 × 4 y con el de 7 canales simultáneos (I–aVF y V1), a 25 mm/s y 10 mm/mV; las fotografías tomadas en ángulo, con sombras fuertes o cortadas pueden digitalizarse mal."),
+    ("li", "**Depende del tipo de electrocardiógrafo.** En equipos modernos suele poder exportarse la señal digital (WFDB, CSV o similar) y el análisis es más preciso. En equipos antiguos, o cuando el estudio solo quedó en papel o PDF, no hay señal digital disponible: hay que digitalizar la hoja impresa, y ese paso introduce pérdida de información y más imprecisión."),
 
     ("h2", "1.7 Organización del documento"),
     ("p", "El **Capítulo II** reúne los conceptos necesarios para entender el proyecto: qué es un electrocardiograma, cómo se ve un infarto en él, cómo funcionan las redes neuronales y las residuales, qué contiene PTB-XL, cómo se miden los resultados y qué otros trabajos existen. Está escrito para que lo pueda seguir alguien sin formación médica ni de inteligencia artificial."),

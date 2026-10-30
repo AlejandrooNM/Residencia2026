@@ -3,8 +3,8 @@ Servicio de análisis de electrocardiogramas.
 
 Dos entradas posibles:
   - Señal digital (WFDB, CSV, NPY): adaptación a 12 x 1000 @ 100 Hz -> modelo de 10 s.
-  - ECG impreso (PDF, escaneo o foto): digitalización del formato 3 x 4 -> modelo
-    ajustado para ver cada derivación solo en su columna de 2.5 s.
+  - ECG impreso (PDF, escaneo o foto): digitalización del formato 3 x 4 o de
+    7 canales simultáneos -> modelo de ECG impreso.
 En ambos casos: ResNet1D + Grad-CAM -> decisión con el umbral calibrado en validación.
 """
 
@@ -133,6 +133,9 @@ class ServicioAnalisis:
             mascara_visible=mascara_visible,
             senal_dibujo=np.asarray(digitalizado.senal, dtype=np.float32).T,
             escala_comun_mv=True,
+            formato_impreso=digitalizado.formato,
+            imagen_documento=digitalizado.imagen_pagina,
+            region_grad_cam=digitalizado.region_grad_cam,
         )
         return self._armar_resultado(
             archivos,
@@ -146,6 +149,7 @@ class ServicioAnalisis:
             advertencias=list(digitalizado.advertencias),
             digitalizacion=DatosDigitalizacion(
                 cobertura=round(digitalizado.cobertura, 3),
+                formato=digitalizado.formato,
                 concordancia_ritmo=(
                     round(digitalizado.concordancia_ritmo, 3)
                     if digitalizado.concordancia_ritmo is not None
@@ -191,10 +195,10 @@ class ServicioAnalisis:
 
     @staticmethod
     def _frecuencia_cardiaca_impresa(digitalizado: EcgDigitalizado) -> float | None:
-        """Solo con tira de ritmo en II hay 10 s continuos para medir el intervalo RR."""
-        if DERIVACION_II not in digitalizado.tiras_ritmo:
-            return None
+        """Usa II cuando hay ~10 s continuos (tira de ritmo o formato de 7 canales)."""
         tira = digitalizado.senal[:, DERIVACION_II]
+        if np.isfinite(tira).sum() < 0.45 * len(tira):
+            return None
         tira = tira[np.isfinite(tira)]
         medidas = medir_latidos(tira[:, None], FRECUENCIA_IMPRESO)
         return medidas.frecuencia_cardiaca_lpm if medidas else None

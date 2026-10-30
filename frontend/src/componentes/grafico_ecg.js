@@ -17,6 +17,8 @@ const ALTO_DERIVACION_COMPACTO_PX = 52;
  *   mapa_grad_cam: number[],
  *   duracion_segundos?: number,
  *   escala_comun_mv?: boolean,
+ *   imagen_documento?: string | null,
+ *   region_grad_cam?: number[] | null,
  * }} datos
  */
 const DISPOSICION_3X4 = [
@@ -24,8 +26,15 @@ const DISPOSICION_3X4 = [
   [1, 4, 7, 10],
   [2, 5, 8, 11],
 ];
+const DISPOSICION_7_CANALES = [0, 1, 2, 3, 4, 5, 6];
+const ALTO_MAPA_INFLUENCIA = 48;
+const ALTO_EJE_TIEMPO = 26;
 
 export function dibujarEcgConGradCam(lienzo, datos) {
+  if (datos.imagen_documento && Array.isArray(datos.region_grad_cam) && datos.region_grad_cam.length === 4) {
+    dibujarDocumentoConGradCam(lienzo, datos);
+    return;
+  }
   if (datos.escala_comun_mv) {
     dibujarFormatoImpreso(lienzo, datos);
     return;
@@ -220,10 +229,74 @@ function dibujarMapaLinea(contexto, mapa, x, y, ancho, alto) {
 }
 
 /**
- * ECG impreso en la misma disposición que la hoja: tres filas de cuatro
- * derivaciones de 2.5 s y, debajo, la tira de ritmo. La escala es única, en mV.
+ * Cuadrícula del PDF/foto (ya recortada) con Grad-CAM encima.
+ * La digitalización sigue alimentando al modelo; aquí no se redibuja el trazo.
+ */
+function dibujarDocumentoConGradCam(lienzo, datos) {
+  const contexto = lienzo.getContext("2d");
+  if (!contexto) return;
+
+  const generacion = (lienzo._generacionDocumento = (lienzo._generacionDocumento || 0) + 1);
+  const imagen = new Image();
+  imagen.onload = () => {
+    if (lienzo._generacionDocumento !== generacion) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const anchoCss = Math.max(1, lienzo.clientWidth || 640);
+    const margenIzq = 8;
+    const margenDer = 8;
+    const margenSup = 6;
+    const anchoUtil = Math.max(1, anchoCss - margenIzq - margenDer);
+    const altoImagen = Math.max(1, Math.round((imagen.naturalHeight / imagen.naturalWidth) * anchoUtil));
+    const altoCss = margenSup + altoImagen + ALTO_MAPA_INFLUENCIA + ALTO_EJE_TIEMPO + 20;
+
+    lienzo.width = Math.floor(anchoCss * dpr);
+    lienzo.height = Math.floor(altoCss * dpr);
+    contexto.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    contexto.clearRect(0, 0, anchoCss, altoCss);
+    contexto.fillStyle = "rgba(7, 18, 24, 0.55)";
+    contexto.fillRect(0, 0, anchoCss, altoCss);
+    contexto.drawImage(imagen, margenIzq, margenSup, anchoUtil, altoImagen);
+
+    const region = Array.isArray(datos.region_grad_cam) && datos.region_grad_cam.length === 4
+      ? datos.region_grad_cam
+      : [0, 0, 1, 1];
+    const [rx0, ry0, rx1, ry1] = region;
+    const x0 = margenIzq + rx0 * anchoUtil;
+    const y0 = margenSup + ry0 * altoImagen;
+    const anchoRegion = Math.max(1, (rx1 - rx0) * anchoUtil);
+    const altoRegion = Math.max(1, (ry1 - ry0) * altoImagen);
+    dibujarMapaFondo(contexto, mapaDeFondo(datos.mapa_grad_cam), x0, y0, anchoRegion, altoRegion);
+
+    const yMapa = margenSup + altoImagen + 8;
+    dibujarMapaLinea(contexto, datos.mapa_grad_cam, margenIzq, yMapa, anchoUtil, ALTO_MAPA_INFLUENCIA);
+    escribirRotulo(contexto, "Influencia", 6, yMapa + ALTO_MAPA_INFLUENCIA / 2, 11);
+    dibujarEjeTiempo(
+      contexto,
+      datos.duracion_segundos ?? 10,
+      margenIzq,
+      yMapa + ALTO_MAPA_INFLUENCIA + 4,
+      anchoUtil,
+    );
+  };
+  imagen.onerror = () => {
+    if (lienzo._generacionDocumento !== generacion) return;
+    const respaldo = { ...datos, imagen_documento: null };
+    if (respaldo.escala_comun_mv) dibujarFormatoImpreso(lienzo, respaldo);
+  };
+  imagen.src = datos.imagen_documento;
+}
+
+/**
+ * ECG impreso en la misma disposición que la hoja: 3 x 4 (+ ritmo) o 7 canales.
+ * La escala es única, en mV. Solo se usa si no hay imagen del documento.
  */
 function dibujarFormatoImpreso(lienzo, datos) {
+  if (datos.formato_impreso === "7_canales") {
+    dibujarFormato7Canales(lienzo, datos);
+    return;
+  }
   const contexto = lienzo.getContext("2d");
   if (!contexto) return;
 
@@ -296,6 +369,54 @@ function dibujarFormatoImpreso(lienzo, datos) {
 
 function ocultarFueraDe(serie, inicio, fin) {
   return serie.map((valor, indice) => (indice >= inicio && indice < fin ? valor : null));
+}
+
+/** Siete derivaciones simultáneas de ~10 s (I–aVF y V1), como en muchos ECG de hospital. */
+function dibujarFormato7Canales(lienzo, datos) {
+  const contexto = lienzo.getContext("2d");
+  if (!contexto) return;
+
+  const series = datos.senales;
+  const muestras = series[0]?.length ?? 0;
+  if (!muestras) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const anchoCss = lienzo.clientWidth || 640;
+  const altoPorFila = 88;
+  const margenIzq = 48;
+  const margenDer = 16;
+  const margenSup = 12;
+  const altoMapa = 48;
+  const altoEje = 26;
+  const filas = DISPOSICION_7_CANALES.length;
+  const altoUtil = filas * altoPorFila;
+  const altoCss = margenSup + altoUtil + altoMapa + altoEje + 20;
+  lienzo.width = Math.floor(anchoCss * dpr);
+  lienzo.height = Math.floor(altoCss * dpr);
+  contexto.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const anchoUtil = anchoCss - margenIzq - margenDer;
+  const duracion = datos.duracion_segundos ?? 10;
+  const escala = limitesEscalaComun(series);
+  const mapa = mapaDeFondo(datos.mapa_grad_cam);
+
+  contexto.clearRect(0, 0, anchoCss, altoCss);
+  contexto.fillStyle = "rgba(7, 18, 24, 0.55)";
+  contexto.fillRect(0, 0, anchoCss, altoCss);
+  dibujarLineasSegundo(contexto, duracion, margenIzq, margenSup, anchoUtil, altoUtil);
+
+  DISPOSICION_7_CANALES.forEach((indiceDerivacion, fila) => {
+    const y0 = margenSup + fila * altoPorFila;
+    dibujarMapaFondo(contexto, mapa, margenIzq, y0, anchoUtil, altoPorFila, 0, muestras, muestras);
+    dibujarSerie(contexto, series[indiceDerivacion], margenIzq, y0 + 14, anchoUtil, altoPorFila - 22, "#d7eef2", escala);
+    const nombre = datos.nombres_derivaciones[indiceDerivacion] ?? "";
+    escribirRotulo(contexto, NOMBRES_CLINICOS[nombre] ?? nombre, 8, y0 + altoPorFila / 2, 12);
+  });
+
+  const yMapa = margenSup + altoUtil + 8;
+  dibujarMapaLinea(contexto, datos.mapa_grad_cam, margenIzq, yMapa, anchoUtil, altoMapa);
+  escribirRotulo(contexto, "Influencia", 6, yMapa + altoMapa / 2, 11);
+  dibujarEjeTiempo(contexto, duracion, margenIzq, yMapa + altoMapa + 4, anchoUtil);
 }
 
 /**

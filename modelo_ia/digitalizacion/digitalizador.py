@@ -1,12 +1,14 @@
 """
-Digitalización de un ECG impreso (PDF, escaneo o foto) en formato 3 x 4.
+Digitalización de un ECG impreso (PDF, escaneo o foto).
 
 Flujo: documento -> imagen -> recorte de la hoja y enderezado -> calibración con
 la cuadrícula -> filas -> seguimiento del trazo -> derivaciones a 100 Hz.
 
-Supuestos del formato (los habituales en electrocardiógrafos de 12 derivaciones):
-25 mm/s, cuadrícula de 1 y 5 mm, tres filas I-aVR-V1-V4 / II-aVL-V2-V5 /
-III-aVF-V3-V6 que abarcan 10 s y, debajo, de cero a tres tiras de ritmo.
+Formatos reconocidos (25 mm/s, cuadrícula de 1 y 5 mm):
+  - 3 x 4: tres filas I-aVR-V1-V4 / II-aVL-V2-V5 / III-aVF-V3-V6 de 10 s y,
+    debajo, de cero a tres tiras de ritmo.
+  - 7 canales: siete filas simultáneas I, II, III, aVR, aVL, aVF, V1 (habitual
+    en hospitales e IMSS). Faltan V2–V6; el modelo las ve como huecos.
 """
 
 from __future__ import annotations
@@ -35,7 +37,10 @@ from modelo_ia.digitalizacion.extraccion_trazos import (
 from modelo_ia.digitalizacion.formato_impreso import (
     COLUMNAS,
     DISPOSICION_3X4,
+    DISPOSICION_7_CANALES,
     DURACION_REGISTRO_S,
+    FORMATO_3X4,
+    FORMATO_7_CANALES,
     FRECUENCIA_IMPRESO,
     MUESTRAS_COLUMNA,
     MUESTRAS_IMPRESO,
@@ -46,7 +51,10 @@ from modelo_ia.digitalizacion.formato_impreso import (
 from modelo_ia.digitalizacion.geometria import enderezar, recortar_hoja, rotar_cuarto_de_vuelta
 
 FILAS_3X4 = len(DISPOSICION_3X4)
+FILAS_7_CANALES = len(DISPOSICION_7_CANALES)
 TIRAS_RITMO_MAXIMAS = 3
+FILAS_3X4_MINIMAS = FILAS_3X4
+FILAS_3X4_MAXIMAS = FILAS_3X4 + TIRAS_RITMO_MAXIMAS
 RECORTE_BORDE_MUESTRAS = 3
 MARGEN_SEGUIMIENTO_MM = 1.0
 # El último píxel de tinta queda algo después del último instante; con esta fracción
@@ -60,6 +68,12 @@ VENTAJA_MINIMA_OTRA_TIRA = 0.03
 LONGITUD_FILA_MINIMA_MM = 235.0
 LONGITUD_FILA_MAXIMA_MM = 285.0
 MARGEN_FRANJA_CUADRICULA_MM = 2.0
+# En el 3 x 4, las rayas verticales de cambio de derivación (cada 2.5 s) concentran tinta.
+FACTOR_MARCADOR_COLUMNA = 2.5
+VENTANA_MARCADOR_COLUMNA_MM = 3.0
+# Si el perfil horizontal detecta dos picos por fila (línea base + ondas R), el de
+# abajo suele ser la línea base real.
+FACTOR_HUECO_TIRA_RITMO = 1.25
 # Pulso de calibración pegado al trazo, al inicio de la fila. No siempre mide 1 mV:
 # si la escala vertical falla un poco, la meseta sale más baja o más alta y, si se
 # queda dentro de los 10 s, aplasta el dibujo y concentra Grad-CAM en el segundo 0.
@@ -83,6 +97,11 @@ class EcgDigitalizado:
     concordancia_ritmo: float | None
     correccion_perspectiva: bool
     angulo_enderezado: float
+    formato: str = FORMATO_3X4
+    # Hoja ya recortada/enderezada (RGB) y rectángulo del registro 0–10 s para Grad-CAM.
+    # region_grad_cam: (x0, y0, x1, y1) en fracción del ancho/alto de imagen_pagina.
+    imagen_pagina: np.ndarray | None = None
+    region_grad_cam: tuple[float, float, float, float] | None = None
     advertencias: tuple[str, ...] = ()
 
     @property
@@ -95,7 +114,7 @@ def digitalizar_documento(contenido: bytes, nombre: str) -> EcgDigitalizado:
     Extrae las 12 derivaciones de un ECG impreso.
 
     Raises:
-        ErrorImagenEcg: si no se reconoce la cuadrícula, el formato 3 x 4 o el trazo.
+        ErrorImagenEcg: si no se reconoce la cuadrícula, el formato o el trazo.
     """
     documento = cargar_documento(contenido, nombre)
     advertencias: list[str] = []
@@ -128,6 +147,9 @@ def digitalizar_documento(contenido: bytes, nombre: str) -> EcgDigitalizado:
         concordancia_ritmo=mejor.concordancia_ritmo,
         correccion_perspectiva=mejor.correccion_perspectiva,
         angulo_enderezado=mejor.angulo_enderezado,
+        formato=mejor.formato,
+        imagen_pagina=mejor.imagen_pagina,
+        region_grad_cam=mejor.region_grad_cam,
         advertencias=tuple(advertencias) + mejor.advertencias,
     )
 
@@ -152,17 +174,50 @@ def _digitalizar_imagen(imagen: np.ndarray) -> EcgDigitalizado:
         - FRACCION_GROSOR_FIN_TRAZO * estimar_grosor_trazo(trazo)
     )
     origen = fin_registro - DURACION_REGISTRO_S * VELOCIDAD_PAPEL_MM_S * escala.pixeles_por_mm_x
+    # Un 3 x 4 con ondas altas a veces produce dos picos de tinta por fila y el
+    # contador llega a 7. Las rayas de cambio de columna delatan el 3 x 4.
+    es_3x4 = _tiene_marcadores_columna(trazo, filas, escala, origen, fin_registro)
+    if es_3x4:
+        filas = _reducir_filas_3x4(filas)
+        fin_registro = (
+            float(np.median([fila.fin_x for fila in filas]))
+            - FRACCION_GROSOR_FIN_TRAZO * estimar_grosor_trazo(trazo)
+        )
+        origen = fin_registro - DURACION_REGISTRO_S * VELOCIDAD_PAPEL_MM_S * escala.pixeles_por_mm_x
+
     senales_filas = _extraer_filas(trazo, filas, origen, fin_registro, escala, franja)
 
-    tiras_supuestas = TIRAS_RITMO_TRIPLES[: len(filas) - FILAS_3X4]
-    senal, tiras_ritmo, concordancia = _ensamblar_derivaciones(senales_filas, tiras_supuestas)
-    cobertura = _calcular_cobertura(senal, tiras_ritmo)
+    if (not es_3x4) and len(filas) == FILAS_7_CANALES:
+        senal = _ensamblar_7_canales(senales_filas)
+        tiras_ritmo: tuple[int, ...] = ()
+        concordancia = None
+        formato = FORMATO_7_CANALES
+        tiras_supuestas: tuple[int, ...] = ()
+    else:
+        if not FILAS_3X4_MINIMAS <= len(filas) <= FILAS_3X4_MAXIMAS:
+            raise ErrorImagenEcg(
+                f"Se detectaron {len(filas)} filas tras reconocer el formato 3 x 4. "
+                "Revise que la hoja muestre tres filas de cuatro derivaciones y la tira de ritmo."
+            )
+        tiras_supuestas = TIRAS_RITMO_TRIPLES[: len(filas) - FILAS_3X4]
+        senal, tiras_ritmo, concordancia = _ensamblar_derivaciones(senales_filas, tiras_supuestas)
+        formato = FORMATO_3X4
+
+    cobertura = _calcular_cobertura(senal, tiras_ritmo, formato)
     if cobertura < COBERTURA_MINIMA:
         raise ErrorImagenEcg(
             f"Solo se pudo seguir el {cobertura:.0%} del trazo. Revise que la imagen esté "
             "enfocada, completa y sin reflejos."
         )
 
+    region = _region_grad_cam(
+        filas,
+        origen,
+        fin_registro,
+        imagen.shape,
+        franja=franja,
+        pixeles_por_mm=float(escala.pixeles_por_mm_x),
+    )
     return EcgDigitalizado(
         senal=senal,
         tiras_ritmo=tiras_ritmo,
@@ -171,9 +226,52 @@ def _digitalizar_imagen(imagen: np.ndarray) -> EcgDigitalizado:
         concordancia_ritmo=concordancia,
         correccion_perspectiva=perspectiva_corregida,
         angulo_enderezado=angulo,
+        formato=formato,
+        imagen_pagina=np.ascontiguousarray(imagen),
+        region_grad_cam=region,
         advertencias=_redactar_advertencias(
-            filas, origen, escala, tiras_supuestas, tiras_ritmo, cobertura, concordancia
+            filas,
+            origen,
+            escala,
+            tiras_supuestas,
+            tiras_ritmo,
+            cobertura,
+            concordancia,
+            formato,
         ),
+    )
+
+
+def _region_grad_cam(
+    filas: list[Fila],
+    origen: float,
+    fin_registro: float,
+    forma_imagen: tuple[int, ...],
+    franja: tuple[int, int] | None = None,
+    pixeles_por_mm: float = 0.0,
+) -> tuple[float, float, float, float]:
+    """Rectángulo de la cuadrícula con el trazo, en fracciones de la página."""
+    alto, ancho = forma_imagen[:2]
+    lineas = np.array([fila.linea_base for fila in filas], dtype=np.float64)
+    if len(lineas) >= 2:
+        media_separacion = float(np.median(np.diff(lineas))) / 2.0
+    else:
+        media_separacion = 0.05 * alto
+    # Incluye rótulos/pulso de calibración a la izquierda del 0 s.
+    margen_izq = max(12.0 * pixeles_por_mm, 0.035 * ancho) if pixeles_por_mm > 0 else 0.04 * ancho
+    margen_der = max(2.0 * pixeles_por_mm, 0.01 * ancho)
+    y0 = max(0.0, float(lineas[0] - media_separacion))
+    y1 = min(float(alto), float(lineas[-1] + media_separacion))
+    if franja is not None:
+        y0 = min(y0, float(franja[0]))
+        y1 = max(y1, float(franja[1]))
+    x0 = max(0.0, float(origen) - margen_izq)
+    x1 = min(float(ancho), float(fin_registro) + margen_der)
+    return (
+        x0 / ancho,
+        y0 / alto,
+        max(x0 / ancho, x1 / ancho),
+        max(y0 / alto, y1 / alto),
     )
 
 
@@ -183,9 +281,8 @@ def _elegir_escala(
     franja: tuple[int, int],
 ) -> tuple[Escala, list[Fila], np.ndarray]:
     """
-    Primera escala candidata con la que aparece el formato 3 x 4 y las filas miden
-    lo que ocupan 10 s a 25 mm/s (más el pulso de calibración). Solo cuentan las
-    filas sobre la cuadrícula: las líneas del encabezado o del pie no son trazo.
+    Primera escala candidata con formato reconocible (3 x 4 o 7 canales) y filas
+    de ~10 s a 25 mm/s. Solo cuentan las filas sobre la cuadrícula.
 
     Returns:
         (escala, filas, máscara del trazo sin motas a esa escala)
@@ -193,29 +290,121 @@ def _elegir_escala(
     filas_por_escala: list[tuple[Escala, list[Fila]]] = []
     for escala in candidatas:
         trazo_limpio = quitar_motas(trazo, escala)
-        margen = MARGEN_FRANJA_CUADRICULA_MM * escala.pixeles_por_mm_y
-        filas = [
-            fila
-            for fila in detectar_filas(trazo_limpio, escala)
-            if franja[0] - margen <= fila.linea_base <= franja[1] + margen
-        ]
+        # Sin el pie de página: un pico fuera de la cuadrícula puede tapar la tira de ritmo.
+        trazo_en_franja = _enmascarar_fuera_de_franja(trazo_limpio, franja, escala)
+        filas = detectar_filas(trazo_en_franja, escala)
         filas_por_escala.append((escala, filas))
-        if not FILAS_3X4 <= len(filas) <= FILAS_3X4 + TIRAS_RITMO_MAXIMAS:
+        if not _formato_reconocido(len(filas)):
             continue
         longitud_mm = float(np.median([fila.fin_x - fila.inicio_x for fila in filas])) / escala.pixeles_por_mm_x
         if LONGITUD_FILA_MINIMA_MM <= longitud_mm <= LONGITUD_FILA_MAXIMA_MM:
             return escala, filas, trazo_limpio
 
     filas_detectadas = len(filas_por_escala[0][1])
-    if not FILAS_3X4 <= filas_detectadas <= FILAS_3X4 + TIRAS_RITMO_MAXIMAS:
+    if not _formato_reconocido(filas_detectadas):
         raise ErrorImagenEcg(
             f"Se detectaron {filas_detectadas} filas de trazo. El sistema reconoce el formato "
-            "3 x 4 (tres filas de cuatro derivaciones) con hasta tres tiras de ritmo."
+            "3 x 4 (tres filas de cuatro derivaciones, con hasta tres tiras de ritmo) "
+            "o el de 7 canales simultáneos (I, II, III, aVR, aVL, aVF, V1)."
         )
     raise ErrorImagenEcg(
         "La longitud de las filas no corresponde a 10 s a 25 mm/s según la cuadrícula. "
         "Verifique que el ECG se imprimió a 25 mm/s y que la hoja aparece completa."
     )
+
+
+def _formato_reconocido(numero_filas: int) -> bool:
+    return numero_filas == FILAS_7_CANALES or FILAS_3X4_MINIMAS <= numero_filas <= FILAS_3X4_MAXIMAS
+
+
+def _enmascarar_fuera_de_franja(
+    trazo: np.ndarray,
+    franja: tuple[int, int],
+    escala: Escala,
+) -> np.ndarray:
+    """Copia del trazo solo dentro de la cuadrícula (más un margen en milímetros)."""
+    margen = int(MARGEN_FRANJA_CUADRICULA_MM * escala.pixeles_por_mm_y)
+    enmascarado = np.zeros_like(trazo)
+    superior = max(0, franja[0] - margen)
+    inferior = min(trazo.shape[0], franja[1] + margen + 1)
+    enmascarado[superior:inferior] = trazo[superior:inferior]
+    return enmascarado
+
+
+def _tiene_marcadores_columna(
+    trazo: np.ndarray,
+    filas: list[Fila],
+    escala: Escala,
+    origen: float,
+    fin_registro: float,
+) -> bool:
+    """True si hay rayas verticales de cambio de derivación cada 2.5 s (formato 3 x 4)."""
+    if len(filas) < FILAS_3X4:
+        return False
+    # Antes de deduplicar puede haber 6 picos en la zona 3 x 4; se usa esa franja.
+    ultima_contenido = min(len(filas) - 1, max(FILAS_3X4, len(filas) - 1) - (1 if len(filas) >= FILAS_7_CANALES else 0))
+    ultima_contenido = max(FILAS_3X4 - 1, ultima_contenido)
+    y0 = max(0, int(filas[0].linea_base - 8 * escala.pixeles_por_mm_y))
+    y1 = min(trazo.shape[0], int(filas[ultima_contenido].linea_base + 8 * escala.pixeles_por_mm_y) + 1)
+    perfil = trazo[y0:y1].sum(axis=0).astype(np.float64)
+    if perfil.max() <= 0:
+        return False
+    inicio = max(0, int(origen))
+    fin = min(trazo.shape[1], int(fin_registro) + 1)
+    mediana = float(np.median(perfil[inicio:fin])) + 1e-6
+    radio = int(VENTANA_MARCADOR_COLUMNA_MM * escala.pixeles_por_mm_x)
+    fuertes = 0
+    for columna in range(1, COLUMNAS):
+        x = int(origen + columna * DURACION_REGISTRO_S / COLUMNAS * VELOCIDAD_PAPEL_MM_S * escala.pixeles_por_mm_x)
+        tramo = perfil[max(0, x - radio):min(len(perfil), x + radio + 1)]
+        if tramo.size and float(tramo.max()) >= FACTOR_MARCADOR_COLUMNA * mediana:
+            fuertes += 1
+    return fuertes >= 2
+
+
+def _reducir_filas_3x4(filas: list[Fila]) -> list[Fila]:
+    """
+    Si cada fila del 3 x 4 generó dos picos (línea base + ondas), se queda con la
+    línea base (la de más abajo de cada par) y conserva las tiras de ritmo.
+
+    Caso típico: 6 picos densos + 1 tira de ritmo = 7 filas con huecos parecidos.
+    """
+    if len(filas) <= FILAS_3X4_MAXIMAS and len(filas) != FILAS_7_CANALES:
+        return filas
+    if len(filas) < FILAS_3X4 + 1:
+        return filas
+
+    if len(filas) == FILAS_7_CANALES:
+        # Tres filas duplicadas y la tira de ritmo debajo.
+        contenido = filas[: 2 * FILAS_3X4]
+        ritmo = filas[2 * FILAS_3X4 :]
+        elegidas = [contenido[indice + 1] for indice in range(0, 2 * FILAS_3X4, 2)]
+        return elegidas + list(ritmo)
+
+    huecos = np.diff([fila.linea_base for fila in filas])
+    # La tira de ritmo suele separarse más que el hueco entre los dobles de una fila.
+    indice_ritmo = None
+    for indice, hueco in enumerate(huecos):
+        referencia = float(np.median(huecos[:indice])) if indice else float(hueco)
+        if hueco >= FACTOR_HUECO_TIRA_RITMO * referencia and indice + 1 >= FILAS_3X4:
+            indice_ritmo = indice + 1
+            break
+    if indice_ritmo is None:
+        indice_ritmo = len(filas)
+
+    contenido = list(filas[:indice_ritmo])
+    ritmo = list(filas[indice_ritmo:])
+    if len(contenido) == FILAS_3X4:
+        return contenido + ritmo
+    if len(contenido) >= 2 * FILAS_3X4:
+        # Pares consecutivos: el pico inferior (mayor y) es la línea base.
+        elegidas = [contenido[indice + 1] for indice in range(0, 2 * FILAS_3X4, 2)]
+        return elegidas + ritmo
+    if len(contenido) > FILAS_3X4:
+        indices = np.linspace(0, len(contenido) - 1, FILAS_3X4)
+        elegidas = [contenido[int(round(indice))] for indice in indices]
+        return elegidas + ritmo
+    return filas
 
 
 def _extraer_filas(
@@ -264,7 +453,7 @@ def _ensamblar_derivaciones(
     tiras_supuestas: tuple[int, ...],
 ) -> tuple[np.ndarray, tuple[int, ...], float | None]:
     """
-    Coloca cada tramo en su derivación y ventana temporal.
+    Coloca cada tramo del formato 3 x 4 en su derivación y ventana temporal.
 
     Los bordes de cada tramo se descartan porque ahí están los marcadores de
     cambio de derivación. Cada tira de ritmo se usa completa en la derivación
@@ -294,6 +483,20 @@ def _ensamblar_derivaciones(
         tiras.append(derivacion)
         concordancias.append(concordancia)
     return senal, tuple(tiras), (concordancias[0] if concordancias else None)
+
+
+def _ensamblar_7_canales(senales_filas: list[np.ndarray]) -> np.ndarray:
+    """Cada fila completa de ~10 s va a I, II, III, aVR, aVL, aVF o V1."""
+    if len(senales_filas) != FILAS_7_CANALES:
+        raise ValueError(f"Se esperaban {FILAS_7_CANALES} filas; se recibieron {len(senales_filas)}")
+    senal = np.full((MUESTRAS_IMPRESO, 12), np.nan)
+    for senal_fila, derivacion in zip(senales_filas, DISPOSICION_7_CANALES):
+        limpia = _quitar_pulso_calibracion(senal_fila)
+        limpia = limpia.copy()
+        limpia[:RECORTE_BORDE_MUESTRAS] = np.nan
+        limpia[-RECORTE_BORDE_MUESTRAS:] = np.nan
+        senal[:, derivacion] = limpia
+    return senal
 
 
 def _quitar_pulso_calibracion(senal_fila: np.ndarray) -> np.ndarray:
@@ -370,9 +573,16 @@ def _identificar_tira(
     return supuesta, concordancia_supuesta
 
 
-def _calcular_cobertura(senal: np.ndarray, tiras_ritmo: tuple[int, ...]) -> float:
-    esperadas = COLUMNAS * FILAS_3X4 * (MUESTRAS_COLUMNA - 2 * RECORTE_BORDE_MUESTRAS)
-    esperadas += len(tiras_ritmo) * (MUESTRAS_IMPRESO - 2 * RECORTE_BORDE_MUESTRAS - MUESTRAS_COLUMNA)
+def _calcular_cobertura(
+    senal: np.ndarray,
+    tiras_ritmo: tuple[int, ...],
+    formato: str = FORMATO_3X4,
+) -> float:
+    if formato == FORMATO_7_CANALES:
+        esperadas = FILAS_7_CANALES * (MUESTRAS_IMPRESO - 2 * RECORTE_BORDE_MUESTRAS)
+    else:
+        esperadas = COLUMNAS * FILAS_3X4 * (MUESTRAS_COLUMNA - 2 * RECORTE_BORDE_MUESTRAS)
+        esperadas += len(tiras_ritmo) * (MUESTRAS_IMPRESO - 2 * RECORTE_BORDE_MUESTRAS - MUESTRAS_COLUMNA)
     return min(1.0, float(np.isfinite(senal).sum()) / esperadas)
 
 
@@ -399,6 +609,7 @@ def _redactar_advertencias(
     tiras_ritmo: tuple[int, ...],
     cobertura: float,
     concordancia: float | None,
+    formato: str = FORMATO_3X4,
 ) -> tuple[str, ...]:
     advertencias: list[str] = []
     inicio_mas_tardio = max(fila.inicio_x for fila in filas)
@@ -410,6 +621,14 @@ def _redactar_advertencias(
         advertencias.append(
             f"Se recuperó el {cobertura:.0%} del trazo; algunas porciones no se pudieron seguir."
         )
+    if formato == FORMATO_7_CANALES:
+        nombres = ", ".join(NOMBRES_TIRAS[derivacion] for derivacion in DISPOSICION_7_CANALES)
+        advertencias.append(
+            f"Formato de 7 canales simultáneos: se asumió el orden {nombres}. "
+            "No aparecen V2–V6; el análisis se apoya solo en las derivaciones impresas."
+        )
+        return tuple(advertencias)
+
     nombres = ", ".join(NOMBRES_TIRAS[derivacion] for derivacion in tiras_ritmo)
     if concordancia is not None and concordancia < CONCORDANCIA_ACEPTABLE:
         advertencias.append(

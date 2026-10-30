@@ -38,15 +38,8 @@ BLOQUES = [
     ("num", 6, "**Actualizar el panel de desempeño** para que muestre las cifras del modelo que realmente analizó cada archivo, incluidas las del modelo de fotografías."),
     ("num", 7, "**Validación prospectiva y con especialistas.** Comparar el sistema con cardiólogos y médicos generales leyendo los mismos trazos y, si los resultados lo justifican, iniciar el camino regulatorio que exigiría un uso clínico."),
 
-    ("h2", "4.5 Lo que aprendimos en el camino"),
-    ("p", "Más allá de las cifras, la residencia nos dejó varias lecciones que no aparecen en ningún libro de texto y que creemos útiles para quien haga un proyecto parecido."),
-    ("p", "**Desconfiar de los números demasiado buenos.** Más de una vez obtuvimos un resultado que parecía excelente y que, al revisarlo, escondía un problema: una medición que reutilizaba datos de entrenamiento, un corte elegido con los mismos datos con los que se evaluaba o un modelo que funcionaba de maravilla en un tipo de hoja y mal en otro. El ajuste con hojas reales es el mejor ejemplo: el AUC de 0.993 era verdadero para esas hojas, pero la medición con PTB-XL mostró que no era toda la historia. Aprendimos a preguntarnos siempre “¿con qué datos se midió esto y qué no se midió?”."),
-    ("p", "**Medir antes de cambiar.** Cada cambio importante, como un nuevo modelo, un ajuste al digitalizador o un nuevo punto de corte, se acompañó de una medición con los mismos datos y el mismo procedimiento que la versión anterior. Esa disciplina nos permitió decidir con evidencia qué conservar y qué descartar, como ocurrió con los experimentos de 16 y 100 épocas adicionales, que no se adoptaron."),
-    ("p", "**El problema real es más amplio que el del artículo.** Al empezar pensábamos que el reto era entrenar una buena red. Resultó que la red era solo una parte: leer archivos con frecuencias desconocidas, digitalizar hojas impresas, presentar la incertidumbre y explicar las limitaciones nos llevó tanto o más tiempo que el modelo. Un sistema útil se construye pensando en quién lo va a usar y con qué archivos."),
-    ("p", "**Escribir para quien no estuvo ahí.** Documentar cada decisión mientras se tomaba, en el repositorio y en los archivos de resultados, hizo posible escribir este informe con cifras exactas y no de memoria. También nos obligó a explicar las cosas con palabras sencillas, lo cual muchas veces reveló que no las entendíamos tan bien como creíamos."),
-
-    ("h2", "4.6 Recomendaciones"),
-    ("p", "Para quien quiera usar o continuar el sistema recomendamos: no usarlo como única base para una decisión clínica; revisar siempre la señal digitalizada cuando se suba una hoja impresa; dar más peso a un resultado positivo en pacientes sin enfermedad cardiaca conocida y menos en pacientes con bloqueos, hipertrofia o cambios del ST-T previos; nunca descartar un infarto por un resultado negativo; y, si se modifica el modelo, repetir todas las mediciones de este informe con los scripts del proyecto antes de cambiar el que usa la aplicación."),
+    ("h2", "4.5 Recomendaciones"),
+    ("p", "Para quien quiera usar o continuar el sistema recomendamos: si el electrocardiógrafo puede exportar la señal digital, prefiera esa vía porque es más precisa; use la hoja impresa solo cuando el equipo sea antiguo o el estudio no se haya guardado en digital; no use el sistema como única base para una decisión clínica; revise siempre la hoja con Grad-CAM cuando suba un PDF o una foto; dé más peso a un resultado positivo en pacientes sin enfermedad cardiaca conocida y menos en pacientes con bloqueos, hipertrofia o cambios del ST-T previos; nunca descarte un infarto por un resultado negativo; y, si se modifica el modelo, repita todas las mediciones de este informe con los scripts del proyecto antes de cambiar el que usa la aplicación."),
 ]
 
 REFERENCIAS = [
@@ -113,7 +106,8 @@ ANEXOS = [
     ("h3", "A.2 Preparar el archivo"),
     ("p", "El sistema acepta dos tipos de entrada:"),
     ("li", "**Señal digital:** el par de archivos .hea y .dat de un registro WFDB (hay que seleccionar los dos a la vez), un archivo .csv o .txt con 12 columnas en el orden I, II, III, aVR, aVL, aVF, V1 a V6, o un archivo .npy con la misma forma. La señal debe durar al menos 5 segundos; lo ideal son 10."),
-    ("li", "**Hoja impresa:** un PDF, una imagen PNG o una fotografía JPG de la hoja completa en formato 3 × 4, impresa a 25 mm/s y 10 mm/mV. Los PDF y PNG se analizan con el modelo de la etapa 2 y las fotografías JPG con el modelo ajustado a hojas reales."),
+    ("li", "**Hoja impresa:** un PDF, una imagen PNG o una fotografía JPG de la hoja completa en formato 3 × 4 o de 7 canales (I–aVF y V1), impresa a 25 mm/s y 10 mm/mV. Los PDF y PNG se analizan con el modelo de la etapa 2 y las fotografías JPG con el modelo ajustado a hojas reales."),
+    ("p", "Si el electrocardiógrafo es moderno y puede exportar la señal digital, prefiera esa opción: el análisis será más preciso. Use la hoja impresa solo cuando el equipo sea antiguo o cuando el estudio no se haya guardado en formato digital."),
     ("p", "Para una fotografía, coloque la hoja sobre una superficie plana y de color uniforme, tómela de frente, con buena luz y sin sombras ni reflejos, y asegúrese de que se vean los cuatro bordes de la cuadrícula. Una foto torcida o cortada puede digitalizarse mal."),
     ("h3", "A.3 Analizar"),
     ("num", 1, "Arrastre el archivo al área de carga o haga clic en ella para elegirlo."),
@@ -123,7 +117,7 @@ ANEXOS = [
     ("li", "**Veredicto:** “Compatible con IAM” o “Sin patrón de IAM”."),
     ("li", "**Probabilidad y punto de corte:** una barra muestra la probabilidad que calculó el modelo y la línea del punto de corte. Si la probabilidad está a la derecha de la línea, el resultado es positivo."),
     ("li", "**Certeza:** alta, media o baja según qué tan lejos esté la probabilidad del corte. Un resultado con certeza baja debe tomarse con especial cautela."),
-    ("li", "**Señal analizada:** las derivaciones que vio el modelo. En hojas impresas, compárelas con su hoja: si el trazo recuperado no se parece al de la hoja, el resultado no es confiable."),
+    ("li", "**Señal o hoja analizada:** en archivos digitales se muestran las derivaciones; en hojas impresas se muestra el PDF o la foto con el mapa Grad-CAM. Use «Ampliar ECG» para hacer zoom. Si la hoja recuperada no se parece a la que subió, el resultado no es confiable."),
     ("li", "**Explicación visual:** las zonas en rojo son los momentos del trazo que más pesaron en la decisión, y una gráfica reparte esa importancia entre onda Q, segmento ST y onda T."),
     ("li", "**Advertencias:** mensajes sobre la frecuencia estimada, la duración de la señal o la calidad de la digitalización."),
     ("li", "**Historial:** los análisis recientes aparecen en una tabla al final de la página."),

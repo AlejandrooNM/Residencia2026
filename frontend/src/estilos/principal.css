@@ -183,9 +183,21 @@ body {
 }
 
 .panel-cabecera p {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.7rem;
   color: var(--color-texto-suave);
   line-height: 1.5;
+}
+
+.panel-cabecera p:last-child {
+  margin-bottom: 1.15rem;
+}
+
+.aviso-preferencia-senal {
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  border-left: 3px solid var(--color-acento);
+  background: rgba(47, 191, 174, 0.1);
+  color: var(--color-texto);
 }
 
 .formulario {
@@ -681,6 +693,10 @@ body {
   line-height: 1.45;
 }
 
+.envoltorio-lienzo {
+  position: relative;
+}
+
 .lienzo-ecg {
   display: block;
   width: 100%;
@@ -688,6 +704,120 @@ body {
   border-radius: 10px;
   border: 1px solid var(--color-borde);
   background: rgba(4, 12, 16, 0.7);
+}
+
+.boton-ampliar-ecg {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+
+.boton-ampliar-ecg.oculto {
+  display: none;
+}
+
+.icono-lupa {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
+.visor-ecg {
+  width: min(96vw, 1180px);
+  max-width: 96vw;
+  height: min(92vh, 900px);
+  max-height: 92vh;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--color-borde);
+  border-radius: 16px;
+  background: #0a161c;
+  color: var(--color-texto);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.visor-ecg::backdrop {
+  background: rgba(2, 8, 12, 0.72);
+}
+
+.visor-ecg-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem 0.35rem;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.visor-ecg-cabecera h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.visor-ecg-controles {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.visor-ecg-controles .boton {
+  min-width: 2.25rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.visor-zoom-valor {
+  min-width: 3.5rem;
+  text-align: center;
+  color: var(--color-texto-suave);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+}
+
+.visor-ecg-ayuda {
+  margin: 0;
+  padding: 0.35rem 1rem 0.55rem;
+  color: var(--color-texto-suave);
+  font-size: 0.8rem;
+}
+
+.visor-ecg-escena {
+  height: calc(100% - 5.5rem);
+  overflow: hidden;
+  cursor: grab;
+  background: rgba(4, 12, 16, 0.85);
+  touch-action: none;
+}
+
+.visor-ecg-escena.arrastrando {
+  cursor: grabbing;
+}
+
+.visor-ecg-lienzo-wrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.lienzo-visor-ecg {
+  display: block;
+  width: min(100%, 1100px);
+  max-width: none;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--color-borde);
+  background: rgba(4, 12, 16, 0.7);
+  pointer-events: none;
 }
 
 .reparto-zonas {

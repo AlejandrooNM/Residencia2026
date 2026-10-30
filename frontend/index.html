@@ -48,16 +48,24 @@
       <section id="analizar" class="panel-analisis" aria-labelledby="titulo-carga">
         <div class="panel-cabecera">
           <h2 id="titulo-carga">Análisis de electrocardiograma</h2>
-          <p>
-            <strong>ECG impreso:</strong> PDF exportado por el electrocardiógrafo, escaneo o foto
-            (<strong>.pdf</strong>, <strong>.png</strong>, <strong>.jpg</strong>) en formato 3 × 4
-            a 25 mm/s, con o sin tira de ritmo. Fotografíe la hoja completa, de frente y sin reflejos.
+          <p class="aviso-preferencia-senal">
+            Si el electrocardiógrafo es reciente y puede exportar la
+            <strong>señal digitalizada en crudo</strong> (muestras del registro),
+            <strong>súbala preferentemente</strong> en lugar del PDF o la foto:
+            el modelo trabaja sobre los datos reales y no depende de digitalizar el papel.
           </p>
           <p>
-            <strong>Señal digital:</strong> registro WFDB (suba juntos el <strong>.hea</strong> y el
-            <strong>.dat</strong>), <strong>.csv</strong>/<strong>.txt</strong> con 12 columnas
-            (una por derivación) o <strong>.npy</strong>. La frecuencia de muestreo se detecta
-            automáticamente.
+            <strong>Señal digital (recomendado):</strong> muchos equipos exportan
+            <strong>.csv</strong>, SCP-ECG, JSON u otros formatos de fábrica.
+            Aquí se admiten hoy <strong>.csv</strong>/<strong>.txt</strong> (12 columnas,
+            una por derivación), WFDB (<strong>.hea</strong> + <strong>.dat</strong> juntos)
+            y <strong>.npy</strong>. Si el equipo ofrece SCP o JSON, exporte también a CSV
+            cuando sea posible. La frecuencia de muestreo se detecta automáticamente.
+          </p>
+          <p>
+            <strong>ECG impreso (si no hay señal digital):</strong> PDF del equipo, escaneo o foto
+            (<strong>.pdf</strong>, <strong>.png</strong>, <strong>.jpg</strong>) en formato 3 × 4
+            a 25 mm/s, con o sin tira de ritmo. Fotografíe la hoja completa, de frente y sin reflejos.
           </p>
         </div>
 
@@ -76,7 +84,7 @@
               required
             />
             <span class="zona-titulo">Arrastre su ECG aquí</span>
-            <span class="zona-detalle">PDF, foto o escaneo del trazo impreso, o la señal digital</span>
+            <span class="zona-detalle">Preferible: señal digital (CSV, WFDB, NPY). Si no, PDF o foto de la hoja</span>
             <span id="nombre-archivo" class="nombre-archivo">Ningún archivo seleccionado</span>
           </label>
 
@@ -271,7 +279,21 @@
             </div>
             <p id="detalle-grafico" class="detalle-grafico"></p>
           </div>
-          <canvas id="lienzo-ecg" class="lienzo-ecg" width="900" height="480"></canvas>
+          <div class="envoltorio-lienzo">
+            <canvas id="lienzo-ecg" class="lienzo-ecg" width="900" height="480"></canvas>
+            <button
+              id="boton-ampliar-ecg"
+              type="button"
+              class="boton boton-secundario boton-ampliar-ecg oculto"
+              aria-haspopup="dialog"
+            >
+              <svg class="icono-lupa" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+                <path d="M15.5 15.5 21 21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+              Ampliar ECG
+            </button>
+          </div>
 
           <div class="bloque-zonas">
             <h4>Activación por componente del latido</h4>
@@ -318,6 +340,24 @@
       </p>
       <p class="pie-meta">Residencia profesional · Instituto Tecnológico de Tijuana · 2026</p>
     </footer>
+
+    <dialog id="visor-ecg" class="visor-ecg" aria-labelledby="titulo-visor-ecg">
+      <div class="visor-ecg-cabecera">
+        <h3 id="titulo-visor-ecg">Cuadrícula del ECG con Grad-CAM</h3>
+        <div class="visor-ecg-controles">
+          <button id="visor-zoom-menos" type="button" class="boton boton-secundario" aria-label="Alejar">−</button>
+          <span id="visor-zoom-valor" class="visor-zoom-valor">100%</span>
+          <button id="visor-zoom-mas" type="button" class="boton boton-secundario" aria-label="Acercar">+</button>
+          <button id="visor-cerrar" type="button" class="boton boton-secundario">Cerrar</button>
+        </div>
+      </div>
+      <p class="visor-ecg-ayuda">Rueda del ratón para zoom · arrastre para desplazar</p>
+      <div id="visor-ecg-escena" class="visor-ecg-escena">
+        <div id="visor-ecg-lienzo-wrap" class="visor-ecg-lienzo-wrap">
+          <canvas id="lienzo-visor-ecg" class="lienzo-visor-ecg" width="1200" height="700"></canvas>
+        </div>
+      </div>
+    </dialog>
 
     <script type="module" src="./src/paginas/inicio.js"></script>
   </body>

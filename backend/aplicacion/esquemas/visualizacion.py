@@ -33,6 +33,18 @@ class VisualizacionEcg(BaseModel):
             "vertical, centrada en 0 mV, como en el papel (10 mm/mV)"
         ),
     )
+    formato_impreso: str | None = Field(
+        default=None,
+        description="Disposición de la hoja: 3x4 o 7_canales; null si no es un ECG impreso",
+    )
+    imagen_documento: str | None = Field(
+        default=None,
+        description="JPEG de la hoja (data URL) para mostrar el PDF/foto originales con Grad-CAM",
+    )
+    region_grad_cam: list[float] | None = Field(
+        default=None,
+        description="Rectángulo [x0, y0, x1, y1] del registro 0–10 s en fracciones de la imagen",
+    )
     mapa_grad_cam: list[float]
     probabilidad_iam: float = Field(ge=0.0, le=1.0)
     umbral_decision: float | None = Field(
